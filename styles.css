@@ -14,7 +14,7 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     line-height: 1.7;
     color: var(--text);
     background: var(--bg);
@@ -54,8 +54,10 @@ body {
 }
 
 .nav-home {
-    font-size: 1.2em;
-    font-weight: 600;
+    font-family: 'Fraunces', 'Crimson Pro', Georgia, serif;
+    font-size: 1.3em;
+    font-weight: 700;
+    letter-spacing: -0.02em;
 }
 
 .nav-links {
@@ -72,17 +74,21 @@ header {
 }
 
 h1 {
-    font-size: 2.5em;
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 2.8em;
     font-weight: 600;
     margin-bottom: 16px;
     color: var(--primary);
+    letter-spacing: -0.02em;
 }
 
 .subtitle {
-    font-size: 1.3em;
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 1.4em;
     color: var(--secondary);
     font-weight: 400;
     margin-bottom: 32px;
+    font-style: italic;
 }
 
 .intro {
@@ -98,18 +104,22 @@ section {
 }
 
 h2 {
-    font-size: 1.8em;
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 2em;
     margin-bottom: 24px;
     color: var(--primary);
     font-weight: 600;
+    letter-spacing: -0.01em;
 }
 
 h3 {
-    font-size: 1.3em;
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 1.4em;
     margin-top: 32px;
     margin-bottom: 16px;
     color: var(--primary);
     font-weight: 600;
+    letter-spacing: -0.01em;
 }
 
 p {

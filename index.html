@@ -5,163 +5,117 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Harmonic Systems Studio - An analog practice for digital times. Musical exploration through resonance, relationship, and regulation.">
     <title>Harmonic Systems Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=Inter:wght@400;500;600&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./styles.css">
     <style>
-        /* Landing page specific styles */
-        :root {
-            --primary: #2c3e50;
-            --secondary: #7f8c8d;
-            --accent: #95a5a6;
-            --bg: #fefefe;
-            --text: #2c3e50;
-            --border: #ecf0f1;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.7;
-            color: var(--text);
-            background: var(--bg);
-            font-size: 18px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 48px 24px;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 64px;
-            padding-bottom: 48px;
-            border-bottom: 2px solid var(--border);
-        }
-
-        h1 {
-            font-size: 2.5em;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: var(--primary);
-        }
-
-        .subtitle {
-            font-size: 1.3em;
-            color: var(--secondary);
-            font-weight: 400;
-            margin-bottom: 32px;
-        }
-
-        .intro {
-            font-size: 1.1em;
-            color: var(--secondary);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        section {
-            margin-bottom: 64px;
-        }
-
-        h2 {
-            font-size: 1.8em;
-            margin-bottom: 24px;
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        h3 {
-            font-size: 1.3em;
-            margin-top: 32px;
-            margin-bottom: 16px;
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        p {
-            margin-bottom: 24px;
-        }
-
-        ul {
-            list-style: none;
-            margin-bottom: 24px;
-        }
-
-        li {
-            margin-bottom: 16px;
-            padding-left: 24px;
-            position: relative;
-        }
-
-        li:before {
-            content: "—";
-            position: absolute;
-            left: 0;
-            color: var(--accent);
-        }
-
-        strong {
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        .divider {
-            border: none;
-            border-top: 1px solid var(--border);
+        /* Gentle sine wave decorations */
+        .wave-break {
+            height: 60px;
             margin: 48px 0;
+            position: relative;
+            overflow: hidden;
         }
 
-        .values-grid {
-            display: grid;
-            gap: 32px;
-            margin-top: 32px;
+        .wave-break::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 30 Q 12.5 20, 25 30 T 50 30 T 75 30 T 100 30' stroke='%2395a5a6' stroke-width='2' fill='none' opacity='0.3'/%3E%3C/svg%3E");
+            background-repeat: repeat-x;
+            background-position: 0 center;
+            background-size: 100px 60px;
+            -webkit-animation: wave 8s ease-in-out infinite;
+            animation: wave 8s ease-in-out infinite;
+            will-change: transform;
         }
 
-        .value {
-            padding: 24px;
+        @-webkit-keyframes wave {
+            0%, 100% {
+                -webkit-transform: translateY(0) scaleY(1);
+                transform: translateY(0) scaleY(1);
+                opacity: 0.5;
+            }
+            25% {
+                -webkit-transform: translateY(-8px) scaleY(1.2);
+                transform: translateY(-8px) scaleY(1.2);
+                opacity: 0.7;
+            }
+            50% {
+                -webkit-transform: translateY(0) scaleY(0.85);
+                transform: translateY(0) scaleY(0.85);
+                opacity: 0.4;
+            }
+            75% {
+                -webkit-transform: translateY(8px) scaleY(1.2);
+                transform: translateY(8px) scaleY(1.2);
+                opacity: 0.6;
+            }
+        }
+
+        @keyframes wave {
+            0%, 100% {
+                -webkit-transform: translateY(0) scaleY(1);
+                transform: translateY(0) scaleY(1);
+                opacity: 0.5;
+            }
+            25% {
+                -webkit-transform: translateY(-8px) scaleY(1.2);
+                transform: translateY(-8px) scaleY(1.2);
+                opacity: 0.7;
+            }
+            50% {
+                -webkit-transform: translateY(0) scaleY(0.85);
+                transform: translateY(0) scaleY(0.85);
+                opacity: 0.4;
+            }
+            75% {
+                -webkit-transform: translateY(8px) scaleY(1.2);
+                transform: translateY(8px) scaleY(1.2);
+                opacity: 0.6;
+            }
+        }
+
+        /* Different wavelength variations */
+        .wave-break.long-wave::before {
+            background-image: url("data:image/svg+xml,%3Csvg width='150' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 30 Q 18.75 20, 37.5 30 T 75 30 T 112.5 30 T 150 30' stroke='%2395a5a6' stroke-width='2' fill='none' opacity='0.3'/%3E%3C/svg%3E");
+            background-size: 150px 60px;
+            -webkit-animation-duration: 10s;
+            animation-duration: 10s;
+        }
+
+        .wave-break.short-wave::before {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 30 Q 7.5 20, 15 30 T 30 30 T 45 30 T 60 30' stroke='%2395a5a6' stroke-width='2' fill='none' opacity='0.3'/%3E%3C/svg%3E");
+            background-size: 60px 60px;
+            -webkit-animation-duration: 6s;
+            animation-duration: 6s;
+        }
+
+        .wave-break.calm-wave::before {
+            background-image: url("data:image/svg+xml,%3Csvg width='120' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 30 Q 15 25, 30 30 T 60 30 T 90 30 T 120 30' stroke='%2395a5a6' stroke-width='1.5' fill='none' opacity='0.25'/%3E%3C/svg%3E");
+            background-size: 120px 60px;
+            -webkit-animation-duration: 12s;
+            animation-duration: 12s;
+        }
+
+        .callout {
             background: #fafafa;
+            padding: 24px;
             border-left: 3px solid var(--accent);
-        }
-
-        .value h3 {
-            margin-top: 0;
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 64px;
-            padding-top: 48px;
-            border-top: 2px solid var(--border);
-            color: var(--secondary);
-            font-style: italic;
-        }
-
-        .emphasis {
-            font-size: 1.1em;
-            color: var(--secondary);
-            font-style: italic;
-            text-align: center;
             margin: 32px 0;
+            font-style: italic;
+            color: var(--secondary);
         }
 
-        @media (max-width: 600px) {
-            body {
-                font-size: 16px;
-            }
-
-            h1 {
-                font-size: 2em;
-            }
-
-            .container {
-                padding: 32px 16px;
-            }
+        /* Special logo font for main title */
+        header h1 {
+            font-family: 'Fraunces', 'Crimson Pro', Georgia, serif;
+            font-weight: 700;
+            font-size: 3.2em;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
         }
     </style>
 </head>
@@ -181,120 +135,122 @@
         <header>
             <h1>Harmonic Systems Studio</h1>
             <p class="subtitle">An Analog Practice for Digital Times</p>
-            <p class="intro">Welcome. I'm David, and I guide musical exploration through the lens of resonance, relationship, and regulation.</p>
+            <p class="intro">Hi, I'm David. I help people explore music through the lens of resonance, relationship, and regulation.</p>
         </header>
 
         <section>
-            <h2>The Practice</h2>
-            <p>Like yoga for the musical mind, we gather in small groups or individually to explore sound as a living system. No performance anxiety, no recitals, no gold stars. Instead, we investigate:</p>
+            <h2>What We Do Here</h2>
+            <p>Think of this like yoga for your ears and mind. We gather in small groups (or one-on-one) to explore how sound actually works - not to perform, but to understand and feel.</p>
+
+            <p>Some things we explore together:</p>
             <ul>
-                <li><strong>Consonance & Dissonance</strong> - The mathematics and feeling of intervals, how frequencies dance together or push apart</li>
-                <li><strong>Folk Traditions</strong> - Songs and stories that have survived generations, carrying cultural DNA in their melodies</li>
-                <li><strong>Synthesis & Signal</strong> - Building sounds from scratch, understanding oscillators and filters as tools for shaping vibration</li>
-                <li><strong>Instrumental Families</strong> - Euro-American instruments, world music traditions, found sounds, and the voice as our first instrument</li>
-                <li><strong>Interactive Music Time</strong> - Structured improvisation, call-and-response, and the social physics of making music together</li>
+                <li>Why certain notes feel stable together while others create tension</li>
+                <li>Folk songs that have survived generations - what makes them stick?</li>
+                <li>Building sounds from scratch with synthesizers (which are really just fancy vibrating machines)</li>
+                <li>How different cultures organize sound into meaning</li>
             </ul>
 
-            <h3>Two Paths, One Philosophy</h3>
-            <p><strong>Independent Sessions:</strong> Drop in when you can. Each gathering is complete in itself - explore tambura drones one week, Appalachian ballads the next.</p>
-            <p><strong>Incremental Journeys:</strong> Commit to a season of exploration with a consistent group. Build from fundamental frequencies through cultural applications. Create something together.</p>
+            <div class="wave-break short-wave"></div>
+
+            <h3>Two Ways to Show Up</h3>
+            <p><strong>Drop-in sessions:</strong> Come when you can. Each gathering stands on its own. Maybe we're exploring drone instruments one week, Appalachian ballads the next.</p>
+
+            <p><strong>8-week journeys:</strong> Commit to exploring with the same group over a season. We build from fundamentals through to making something together.</p>
         </section>
 
         <hr class="divider">
 
         <section>
-            <h2>Cultural Competence & Inclusion</h2>
-            <p>This practice emerges from:</p>
-            <ul>
-                <li>Training as a Speech-Language Pathologist specializing in AAC and autism support</li>
-                <li>Years developing culturally inclusive communication systems with thousands of diverse images</li>
-                <li>Direct experience supporting K-5 students across neurotypes and cultural backgrounds</li>
-                <li>Recognition that musical traditions carry both beauty and historical complexity</li>
-            </ul>
+            <h2>How This Space Works</h2>
 
-            <p><strong>We acknowledge:</strong> Every musical tradition exists within a cultural context. We approach all traditions with respect, cite our sources, and recognize when we are guests in another culture's sonic landscape.</p>
+            <p>This practice comes from my M.S. in Communication Disorders, years developing culturally inclusive communication systems, and working with people ages birth through 99 across neurotypes.</p>
 
-            <p><strong>We center:</strong> Neurodivergent ways of experiencing sound. Stimming is welcome. Silence is valid. Processing time is built in. Sensory needs are accommodated without question.</p>
-
-            <p><strong>We provide:</strong> Multiple ways to engage. Visual frequencies displays for those who think in patterns. Embodied exercises for kinesthetic learners. Technical explanations for systematic minds. Stories and metaphors for narrative thinkers.</p>
-        </section>
-
-        <hr class="divider">
-
-        <section>
-            <h2>Core Values</h2>
-            <div class="values-grid">
-                <div class="value">
-                    <h3>Analog First, Digital When Helpful</h3>
-                    <p>Real instruments in real rooms with real people. Technology serves the experience, never dominates it. We might use an app to visualize harmonics, but our primary interface is ear-to-air.</p>
-                </div>
-
-                <div class="value">
-                    <h3>Process Over Product</h3>
-                    <p>Music as practice, not performance. Like meditation, the value is in the doing, not in achieving some external standard of "good."</p>
-                </div>
-
-                <div class="value">
-                    <h3>Regulation Through Resonance</h3>
-                    <p>Sound as a tool for nervous system support. Not music therapy (that's a clinical service), but musical experiences that naturally support equilibrium. Based on measurable phenomena - frequency ratios, rhythmic entrainment, harmonic series - not mystical claims.</p>
-                </div>
-
-                <div class="value">
-                    <h3>Transparent Complexity</h3>
-                    <p>Music theory isn't gatekept here. If you want to understand why a perfect fifth feels stable, we'll explore the 3:2 frequency ratio. If you prefer to just feel it in your bones, that's equally valid. Complex ideas, accessible explanations.</p>
-                </div>
-
-                <div class="value">
-                    <h3>Living Traditions</h3>
-                    <p>Folk music isn't museum pieces - it's living culture. We learn songs not to preserve them in amber but to understand how musical DNA evolves, adapts, and stays relevant across generations.</p>
-                </div>
+            <div class="callout">
+                Musical traditions carry both beauty and historical complexity. We approach each tradition with respect, cite our sources, and stay mindful when we're guests in another culture's sonic landscape.
             </div>
+
+            <p><strong>Neurodivergent ways of experiencing sound are centered here.</strong> Stimming is welcome. Silence is valid. Processing time is built in. Sensory needs are met without having to explain or justify.</p>
+
+            <p><strong>Multiple ways to engage:</strong> Visual frequency displays for pattern thinkers. Embodied exercises for kinesthetic learners. Technical explanations for systematic minds. Stories and metaphors for narrative thinkers. You choose what works for you.</p>
+        </section>
+
+        <div class="wave-break long-wave"></div>
+
+        <section>
+            <h2>What Guides This Practice</h2>
+
+            <h3>Analog First, Digital When It Helps</h3>
+            <p>Real instruments in real rooms with real people. Technology supports the experience without taking over. We might use an app to visualize harmonics, but the primary way we connect is ear-to-air, breath-to-breath.</p>
+
+            <div class="wave-break"></div>
+
+            <h3>Process Over Product</h3>
+            <p>Music as practice, not performance. Like meditation or drawing, the value lives in the doing - not in meeting some external standard of "good enough."</p>
+
+            <div class="wave-break"></div>
+
+            <h3>Regulation Through Resonance</h3>
+            <p>Sound can support nervous system equilibrium. This isn't music therapy (that's a clinical service with different training) - it's about musical experiences that naturally help us regulate. Based on observable phenomena like frequency ratios and rhythmic entrainment, not mystical claims.</p>
+
+            <div class="wave-break"></div>
+
+            <h3>Accessible Complexity</h3>
+            <p>Music theory isn't locked away here. Want to understand why a perfect fifth feels stable? We'll explore the 3:2 frequency ratio. Prefer to just feel it in your bones? That works too. Complex ideas, but explained in ways that make sense.</p>
+
+            <div class="wave-break"></div>
+
+            <h3>Living Traditions</h3>
+            <p>Folk music isn't museum pieces. It's living culture. We learn songs not to freeze them in time, but to understand how musical ideas evolve, adapt, and stay relevant across generations.</p>
         </section>
 
         <hr class="divider">
 
         <section>
-            <h2>Who This Is For</h2>
+            <h2>Who This Might Resonate With</h2>
             <ul>
-                <li><strong>Parents</strong> seeking screen-free enrichment that actually engages</li>
-                <li><strong>Neurodivergent adults</strong> wanting musical exploration without performance pressure</li>
-                <li><strong>Technical minds</strong> curious about the physics and mathematics of music</li>
-                <li><strong>Cultural practitioners</strong> looking to understand music beyond Western classical traditions</li>
-                <li><strong>Burnt-out professionals</strong> seeking analog practices that restore rather than deplete</li>
-                <li><strong>Curious beginners</strong> who've always wanted to understand music but felt excluded by traditional lessons</li>
+                <li>Parents looking for screen-free ways to engage with music and their kids</li>
+                <li>Neurodivergent adults who want to explore music without performance pressure</li>
+                <li>Technical minds curious about the physics and math underneath musical experiences</li>
+                <li>Anyone wanting to understand music beyond Western classical traditions</li>
+                <li>People seeking practices that restore rather than deplete</li>
+                <li>Curious beginners who've felt excluded by traditional music lessons</li>
             </ul>
         </section>
 
-        <hr class="divider">
+        <div class="wave-break calm-wave"></div>
 
         <section>
-            <h2>The Guide</h2>
-            <p>I bring an unusual combination:</p>
+            <h2>About Me</h2>
+            <p>I bring a weird mix of experiences:</p>
             <ul>
-                <li>M.S. in Communication Disorders with specialization in voice and AAC</li>
+                <li>M.S. in Communication Disorders (specializing in voice and AAC)</li>
                 <li>Multi-instrumentalist (piano, guitar, accordion, banjo)</li>
                 <li>Trained in the IBM Cloud Garage Methodology</li>
-                <li>Parent navigating the same screen-time challenges you face</li>
+                <li>Parent figuring out the same screen-time challenges everyone faces</li>
             </ul>
-            <p>I care about creating conditions where your own musical intuition can emerge and develop. I'm more facilitator than teacher, more guide than guru.</p>
+
+            <p>I'm less interested in being the expert and more interested in creating conditions where your own musical intuition can emerge. More facilitator than teacher. More guide than guru.</p>
         </section>
 
         <hr class="divider">
 
         <section>
             <h2>The Invitation</h2>
-            <p>Musical understanding is your birthright. Not everyone needs to be a performer, but everyone deserves to understand how sound works, why certain combinations move us, and how different cultures have solved the puzzle of organizing vibration into meaning.</p>
 
-            <p>Join us in person for sessions, house concerts, and workshops. The digital infrastructure exists only to support our analog practice - registration, resources, recordings for practice between sessions.</p>
+            <p>Musical understanding belongs to everyone. Not everyone needs to perform, but everyone deserves to understand how sound works, why certain combinations move us, and how different cultures have organized vibration into meaning.</p>
 
-            <p class="emphasis">This is slow tech for deep learning. Harmonic systems for human nervous systems.</p>
+            <p>Sessions happen in person. The digital stuff (this site, the blog, free curriculum) exists to support our analog practice - not replace it.</p>
 
-            <p class="emphasis">Begin when you're ready. There's no behind to be.</p>
+            <div class="callout">
+                This is slow tech for deep learning.<br>
+                Harmonic systems for human nervous systems.<br><br>
+                Begin when you're ready. There's no behind to be.
+            </div>
         </section>
 
         <footer>
             <p>Building technology in service of human resonance</p>
-            <p style="margin-top: 16px;"><a href="https://github.com/harmonicsystems/harmonic-systems" style="color: var(--secondary);">View on GitHub</a></p>
+            <p style="margin-top: 16px;"><a href="https://github.com/harmonicsystems/harmonic-systems">View on GitHub</a></p>
         </footer>
     </div>
 </body>

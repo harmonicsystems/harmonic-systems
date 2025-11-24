@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Harmonic Systems Studio - An analog practice for digital times. Musical exploration through resonance, relationship, and regulation.">
+    <title>Harmonic Systems Studio</title>
+    <link rel="stylesheet" href="./styles.css">
+    <style>
+        /* Landing page specific styles */
+        :root {
+            --primary: #2c3e50;
+            --secondary: #7f8c8d;
+            --accent: #95a5a6;
+            --bg: #fefefe;
+            --text: #2c3e50;
+            --border: #ecf0f1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.7;
+            color: var(--text);
+            background: var(--bg);
+            font-size: 18px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 64px;
+            padding-bottom: 48px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--primary);
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            color: var(--secondary);
+            font-weight: 400;
+            margin-bottom: 32px;
+        }
+
+        .intro {
+            font-size: 1.1em;
+            color: var(--secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        section {
+            margin-bottom: 64px;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            margin-bottom: 24px;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        h3 {
+            font-size: 1.3em;
+            margin-top: 32px;
+            margin-bottom: 16px;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        p {
+            margin-bottom: 24px;
+        }
+
+        ul {
+            list-style: none;
+            margin-bottom: 24px;
+        }
+
+        li {
+            margin-bottom: 16px;
+            padding-left: 24px;
+            position: relative;
+        }
+
+        li:before {
+            content: "—";
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+
+        strong {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 48px 0;
+        }
+
+        .values-grid {
+            display: grid;
+            gap: 32px;
+            margin-top: 32px;
+        }
+
+        .value {
+            padding: 24px;
+            background: #fafafa;
+            border-left: 3px solid var(--accent);
+        }
+
+        .value h3 {
+            margin-top: 0;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 64px;
+            padding-top: 48px;
+            border-top: 2px solid var(--border);
+            color: var(--secondary);
+            font-style: italic;
+        }
+
+        .emphasis {
+            font-size: 1.1em;
+            color: var(--secondary);
+            font-style: italic;
+            text-align: center;
+            margin: 32px 0;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                font-size: 16px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .container {
+                padding: 32px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="site-nav">
+        <div class="container">
+            <a href="./" class="nav-home">Harmonic Systems</a>
+            <div class="nav-links">
+                <a href="./blog/">Blog</a>
+                <a href="./lessons/">Lessons</a>
+                <a href="./playlists/">Playlists</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header>
+            <h1>Harmonic Systems Studio</h1>
+            <p class="subtitle">An Analog Practice for Digital Times</p>
+            <p class="intro">Welcome. I'm David, and I guide musical exploration through the lens of resonance, relationship, and regulation.</p>
+        </header>
+
+        <section>
+            <h2>The Practice</h2>
+            <p>Like yoga for the musical mind, we gather in small groups or individually to explore sound as a living system. No performance anxiety, no recitals, no gold stars. Instead, we investigate:</p>
+            <ul>
+                <li><strong>Consonance & Dissonance</strong> - The mathematics and feeling of intervals, how frequencies dance together or push apart</li>
+                <li><strong>Folk Traditions</strong> - Songs and stories that have survived generations, carrying cultural DNA in their melodies</li>
+                <li><strong>Synthesis & Signal</strong> - Building sounds from scratch, understanding oscillators and filters as tools for shaping vibration</li>
+                <li><strong>Instrumental Families</strong> - Euro-American instruments, world music traditions, found sounds, and the voice as our first instrument</li>
+                <li><strong>Interactive Music Time</strong> - Structured improvisation, call-and-response, and the social physics of making music together</li>
+            </ul>
+
+            <h3>Two Paths, One Philosophy</h3>
+            <p><strong>Independent Sessions:</strong> Drop in when you can. Each gathering is complete in itself - explore tambura drones one week, Appalachian ballads the next.</p>
+            <p><strong>Incremental Journeys:</strong> Commit to a season of exploration with a consistent group. Build from fundamental frequencies through cultural applications. Create something together.</p>
+        </section>
+
+        <hr class="divider">
+
+        <section>
+            <h2>Cultural Competence & Inclusion</h2>
+            <p>This practice emerges from:</p>
+            <ul>
+                <li>Training as a Speech-Language Pathologist specializing in AAC and autism support</li>
+                <li>Years developing culturally inclusive communication systems with thousands of diverse images</li>
+                <li>Direct experience supporting K-5 students across neurotypes and cultural backgrounds</li>
+                <li>Recognition that musical traditions carry both beauty and historical complexity</li>
+            </ul>
+
+            <p><strong>We acknowledge:</strong> Every musical tradition exists within a cultural context. We approach all traditions with respect, cite our sources, and recognize when we are guests in another culture's sonic landscape.</p>
+
+            <p><strong>We center:</strong> Neurodivergent ways of experiencing sound. Stimming is welcome. Silence is valid. Processing time is built in. Sensory needs are accommodated without question.</p>
+
+            <p><strong>We provide:</strong> Multiple ways to engage. Visual frequencies displays for those who think in patterns. Embodied exercises for kinesthetic learners. Technical explanations for systematic minds. Stories and metaphors for narrative thinkers.</p>
+        </section>
+
+        <hr class="divider">
+
+        <section>
+            <h2>Core Values</h2>
+            <div class="values-grid">
+                <div class="value">
+                    <h3>Analog First, Digital When Helpful</h3>
+                    <p>Real instruments in real rooms with real people. Technology serves the experience, never dominates it. We might use an app to visualize harmonics, but our primary interface is ear-to-air.</p>
+                </div>
+
+                <div class="value">
+                    <h3>Process Over Product</h3>
+                    <p>Music as practice, not performance. Like meditation, the value is in the doing, not in achieving some external standard of "good."</p>
+                </div>
+
+                <div class="value">
+                    <h3>Regulation Through Resonance</h3>
+                    <p>Sound as a tool for nervous system support. Not music therapy (that's a clinical service), but musical experiences that naturally support equilibrium. Based on measurable phenomena - frequency ratios, rhythmic entrainment, harmonic series - not mystical claims.</p>
+                </div>
+
+                <div class="value">
+                    <h3>Transparent Complexity</h3>
+                    <p>Music theory isn't gatekept here. If you want to understand why a perfect fifth feels stable, we'll explore the 3:2 frequency ratio. If you prefer to just feel it in your bones, that's equally valid. Complex ideas, accessible explanations.</p>
+                </div>
+
+                <div class="value">
+                    <h3>Living Traditions</h3>
+                    <p>Folk music isn't museum pieces - it's living culture. We learn songs not to preserve them in amber but to understand how musical DNA evolves, adapts, and stays relevant across generations.</p>
+                </div>
+            </div>
+        </section>
+
+        <hr class="divider">
+
+        <section>
+            <h2>Who This Is For</h2>
+            <ul>
+                <li><strong>Parents</strong> seeking screen-free enrichment that actually engages</li>
+                <li><strong>Neurodivergent adults</strong> wanting musical exploration without performance pressure</li>
+                <li><strong>Technical minds</strong> curious about the physics and mathematics of music</li>
+                <li><strong>Cultural practitioners</strong> looking to understand music beyond Western classical traditions</li>
+                <li><strong>Burnt-out professionals</strong> seeking analog practices that restore rather than deplete</li>
+                <li><strong>Curious beginners</strong> who've always wanted to understand music but felt excluded by traditional lessons</li>
+            </ul>
+        </section>
+
+        <hr class="divider">
+
+        <section>
+            <h2>The Guide</h2>
+            <p>I bring an unusual combination:</p>
+            <ul>
+                <li>M.S. in Communication Disorders with specialization in voice and AAC</li>
+                <li>Multi-instrumentalist (piano, guitar, accordion, banjo)</li>
+                <li>Trained in the IBM Cloud Garage Methodology</li>
+                <li>Parent navigating the same screen-time challenges you face</li>
+            </ul>
+            <p>I care about creating conditions where your own musical intuition can emerge and develop. I'm more facilitator than teacher, more guide than guru.</p>
+        </section>
+
+        <hr class="divider">
+
+        <section>
+            <h2>The Invitation</h2>
+            <p>Musical understanding is your birthright. Not everyone needs to be a performer, but everyone deserves to understand how sound works, why certain combinations move us, and how different cultures have solved the puzzle of organizing vibration into meaning.</p>
+
+            <p>Join us in person for sessions, house concerts, and workshops. The digital infrastructure exists only to support our analog practice - registration, resources, recordings for practice between sessions.</p>
+
+            <p class="emphasis">This is slow tech for deep learning. Harmonic systems for human nervous systems.</p>
+
+            <p class="emphasis">Begin when you're ready. There's no behind to be.</p>
+        </section>
+
+        <footer>
+            <p>Building technology in service of human resonance</p>
+            <p style="margin-top: 16px;"><a href="https://github.com/harmonicsystems/harmonic-systems" style="color: var(--secondary);">View on GitHub</a></p>
+        </footer>
+    </div>
+</body>
+</html>
