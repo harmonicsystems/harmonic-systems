@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Simple MIDI visualizer - connect your keyboard and see notes, frequencies, and intervals in real-time">
+    <title>MIDI Visualizer - Harmonic Systems Studio</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=Inter:wght@400;500;600&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        .visualizer {
+            background: #fafafa;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 48px 32px;
+            margin: 48px 0;
+            text-align: center;
+        }
+
+        .wave-canvas {
+            width: 100%;
+            height: 150px;
+            margin: 32px 0;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .note-display {
+            font-family: 'Fraunces', Georgia, serif;
+            font-size: 6em;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 24px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            transition: all 0.2s ease;
+        }
+
+        /* Scale down when many notes */
+        .note-display.many-notes {
+            font-size: 4em;
+            gap: 12px;
+        }
+
+        .note-display.lots-of-notes {
+            font-size: 3em;
+            gap: 8px;
+        }
+
+        .note-display.active {
+            color: #e74c3c;
+            transform: scale(1.05);
+        }
+
+        .note-item {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .note-item .note-name {
+            font-size: 1em;
+        }
+
+        .note-item .note-hz {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.3em;
+            opacity: 0.7;
+            font-weight: 500;
+        }
+
+        .note-item.note-0 { color: #e74c3c; }
+        .note-item.note-1 { color: #3498db; }
+        .note-item.note-2 { color: #2ecc71; }
+        .note-item.note-3 { color: #f39c12; }
+        .note-item.note-4 { color: #9b59b6; }
+
+        .frequency-display {
+            font-family: 'Inter', sans-serif;
+            font-size: 2em;
+            color: var(--secondary);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .frequency-display.many-notes {
+            font-size: 1.5em;
+        }
+
+        .midi-number {
+            font-family: 'Inter', monospace;
+            font-size: 1.2em;
+            color: var(--accent);
+            margin-bottom: 32px;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        .midi-number.many-notes {
+            font-size: 1em;
+        }
+
+        .status {
+            padding: 16px;
+            border-radius: 4px;
+            margin: 24px 0;
+            font-weight: 500;
+        }
+
+        .status.waiting {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .connect-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+        }
+
+        .connect-button:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .connect-button:disabled {
+            background: var(--accent);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin-top: 32px;
+        }
+
+        .info-card {
+            background: white;
+            padding: 24px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .info-card h4 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+
+        .info-card p {
+            font-size: 0.95em;
+            color: var(--secondary);
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="site-nav">
+        <div class="container">
+            <a href="../" class="nav-home">Harmonic Systems</a>
+            <div class="nav-links">
+                <a href="../blog/">Blog</a>
+                <a href="../lessons/">Lessons</a>
+                <a href="../tools/">Tools</a>
+                <a href="../playlists/">Playlists</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" style="padding-top: 24px; padding-bottom: 24px;">
+        <header style="padding-top: 0; margin-bottom: 16px; padding-bottom: 16px;">
+            <h1 style="margin-bottom: 8px;">MIDI Visualizer</h1>
+            <p class="subtitle" style="margin-bottom: 16px;">Connect your keyboard and see notes, frequencies, and intervals in real-time</p>
+        </header>
+
+        <section>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div style="flex: 1;">
+                    <label style="margin-right: 8px; color: var(--secondary); font-size: 0.9em;">Note Display:</label>
+                    <select id="notePreference" style="padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 0.9em;">
+                        <option value="sharps">Use Sharps (C#, D#, F#...)</option>
+                        <option value="flats">Use Flats (Db, Eb, Gb...)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="status" class="status waiting" style="margin: 12px 0; padding: 12px;">
+                Click "Connect MIDI Device" to get started
+            </div>
+
+            <button id="connectButton" class="connect-button" style="margin-bottom: 16px;">Connect MIDI Device</button>
+
+            <div class="visualizer" style="padding: 24px 16px; margin: 16px 0;">
+                <div id="noteDisplay" class="note-display" style="margin-bottom: 16px; min-height: 100px;">
+                    Play a note...
+                </div>
+                <canvas id="waveCanvas" class="wave-canvas" style="margin: 16px 0; height: 120px;"></canvas>
+                <div id="frequencyDisplay" class="frequency-display" style="margin-bottom: 8px;">
+                    —
+                </div>
+                <div id="midiDisplay" class="midi-number" style="margin-bottom: 16px;">
+                    —
+                </div>
+            </div>
+
+            <div class="info-grid" style="margin-top: 16px; gap: 16px;">
+                <div class="info-card" style="padding: 16px;">
+                    <h4 style="margin-bottom: 6px; font-size: 0.95em;">Last Note</h4>
+                    <p id="lastNote" style="margin: 0; font-size: 0.95em;">None</p>
+                </div>
+                <div class="info-card" style="padding: 16px;">
+                    <h4 style="margin-bottom: 6px; font-size: 0.95em;">Velocity</h4>
+                    <p id="velocity" style="margin: 0; font-size: 0.95em;">—</p>
+                </div>
+                <div class="info-card" style="padding: 16px;">
+                    <h4 style="margin-bottom: 6px; font-size: 0.95em;">Active Notes</h4>
+                    <p id="activeNotes" style="margin: 0; font-size: 0.95em;">0</p>
+                </div>
+            </div>
+        </section>
+
+        <hr class="divider" style="margin: 32px 0;">
+
+        <section>
+            <h2>About This Tool</h2>
+            <p>This is a simple MIDI visualizer that helps you see the relationship between what you play and the underlying physics of sound.</p>
+
+            <p><strong>What you'll see:</strong></p>
+            <ul>
+                <li>The note name (e.g., "A4", "C#3")</li>
+                <li>The fundamental frequency in Hertz</li>
+                <li>The MIDI note number (0-127)</li>
+                <li>Velocity (how hard you hit the key)</li>
+            </ul>
+
+            <p><strong>Why this matters:</strong> Music is physics. Every note you play has a measurable frequency. Understanding this connection helps demystify music theory and shows how different tuning systems work.</p>
+
+            <p><strong>Privacy:</strong> All processing happens in your browser. Nothing is recorded or sent anywhere. Your MIDI data never leaves your device.</p>
+        </section>
+
+        <hr class="divider">
+
+        <section>
+            <h2>Troubleshooting</h2>
+            <p><strong>No MIDI devices showing?</strong></p>
+            <ul>
+                <li>Make sure your MIDI keyboard is plugged in</li>
+                <li>Try refreshing the page</li>
+                <li>Check that your browser supports Web MIDI API (Chrome, Edge, Opera work well)</li>
+                <li>Safari requires macOS 12+ and may need permissions enabled</li>
+            </ul>
+        </section>
+
+        <footer>
+            <p>Part of the Harmonic Systems open-source toolkit</p>
+            <p style="margin-top: 16px;"><a href="https://github.com/harmonicsystems/harmonic-systems">View on GitHub</a></p>
+        </footer>
+    </div>
+
+    <script>
+        const noteDisplay = document.getElementById('noteDisplay');
+        const frequencyDisplay = document.getElementById('frequencyDisplay');
+        const midiDisplay = document.getElementById('midiDisplay');
+        const statusDiv = document.getElementById('status');
+        const connectButton = document.getElementById('connectButton');
+        const lastNoteDiv = document.getElementById('lastNote');
+        const velocityDiv = document.getElementById('velocity');
+        const activeNotesDiv = document.getElementById('activeNotes');
+        const canvas = document.getElementById('waveCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let midiAccess = null;
+        let activeNotes = new Map(); // Changed to Map to store note -> frequency
+        let currentFrequency = 0;
+        let animationId = null;
+        let useFlats = false;
+
+        const notePreferenceSelect = document.getElementById('notePreference');
+        notePreferenceSelect.addEventListener('change', (e) => {
+            useFlats = e.target.value === 'flats';
+        });
+
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+            canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Note names
+        const noteNamesSharps = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const noteNamesFlats = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+
+        function midiToNoteName(midiNumber) {
+            const octave = Math.floor(midiNumber / 12) - 1;
+            const noteNames = useFlats ? noteNamesFlats : noteNamesSharps;
+            const noteName = noteNames[midiNumber % 12];
+            return `${noteName}${octave}`;
+        }
+
+        function midiToFrequency(midiNumber) {
+            // A4 = 440 Hz = MIDI note 69
+            return Math.round(440 * Math.pow(2, (midiNumber - 69) / 12) * 100) / 100;
+        }
+
+        function updateStatus(message, type = 'waiting') {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+
+        function updateNoteDisplay() {
+            // Remove responsive classes first
+            noteDisplay.classList.remove('many-notes', 'lots-of-notes');
+            frequencyDisplay.classList.remove('many-notes');
+            midiDisplay.classList.remove('many-notes');
+
+            if (activeNotes.size === 0) {
+                noteDisplay.innerHTML = 'Play a note...';
+                frequencyDisplay.textContent = '—';
+                midiDisplay.textContent = '—';
+                return;
+            }
+
+            // Apply responsive classes based on number of notes
+            if (activeNotes.size >= 6) {
+                noteDisplay.classList.add('lots-of-notes');
+                frequencyDisplay.classList.add('many-notes');
+                midiDisplay.classList.add('many-notes');
+            } else if (activeNotes.size >= 4) {
+                noteDisplay.classList.add('many-notes');
+                frequencyDisplay.classList.add('many-notes');
+                midiDisplay.classList.add('many-notes');
+            }
+
+            // Sort notes by MIDI number (low to high)
+            const sortedNotes = Array.from(activeNotes.keys()).sort((a, b) => a - b);
+
+            // Create HTML for all notes with color coding and Hz
+            const notesHTML = sortedNotes.map((note, index) => {
+                const noteName = midiToNoteName(note);
+                const frequency = midiToFrequency(note);
+                return `<span class="note-item note-${index % 5}">
+                    <span class="note-name">${noteName}</span>
+                    <span class="note-hz">${frequency} Hz</span>
+                </span>`;
+            }).join(' ');
+
+            noteDisplay.innerHTML = notesHTML;
+
+            // Show info for all notes
+            const highestNote = sortedNotes[sortedNotes.length - 1];
+            const frequency = midiToFrequency(highestNote);
+            frequencyDisplay.textContent = activeNotes.size === 1 ? `Fundamental Frequency` : `${activeNotes.size} notes (highest: ${frequency} Hz)`;
+            midiDisplay.textContent = activeNotes.size === 1 ? `MIDI ${highestNote}` : `MIDI ${sortedNotes.join(', ')}`;
+        }
+
+        // Draw animated sine wave
+        function drawWave() {
+            const width = canvas.offsetWidth;
+            const height = canvas.offsetHeight;
+            const centerY = height / 2;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw center line first
+            ctx.strokeStyle = '#ecf0f1';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(width, centerY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Get all active frequencies
+            const frequencies = Array.from(activeNotes.values());
+
+            if (frequencies.length === 0) {
+                // Continue animation even when no note
+                requestAnimationFrame(drawWave);
+                return;
+            }
+
+            // Animate the wave
+            const time = Date.now() * 0.001; // Slower animation for clarity
+
+            // Draw each active frequency
+            frequencies.forEach((freq, index) => {
+                const amplitude = height * 0.3 / frequencies.length; // Reduce amplitude if multiple notes
+                const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6'];
+                ctx.strokeStyle = colors[index % colors.length];
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+
+                // Calculate wavelength to show 2-3 complete cycles
+                const cyclesShown = 2.5;
+                const pixelsPerCycle = width / cyclesShown;
+
+                for (let x = 0; x <= width; x += 1) {
+                    // Properly calculate phase based on actual frequency
+                    // Each cycle is 2π, and we want cyclesShown cycles across the width
+                    const cycles = (x / width) * cyclesShown;
+                    const phase = cycles * Math.PI * 2;
+                    const animatedPhase = phase - (time * freq / 100); // Animate based on frequency
+
+                    const offsetY = centerY + (index - (frequencies.length - 1) / 2) * amplitude * 0.5;
+                    const y = offsetY + Math.sin(animatedPhase) * amplitude;
+
+                    if (x === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.stroke();
+            });
+
+            // Continue animation
+            requestAnimationFrame(drawWave);
+        }
+
+        // Start drawing loop
+        drawWave();
+
+        function onMIDIMessage(event) {
+            const [command, note, velocity] = event.data;
+
+            // Note on (144-159) or note off (128-143)
+            const isNoteOn = (command >= 144 && command <= 159) && velocity > 0;
+            const isNoteOff = (command >= 128 && command <= 143) || velocity === 0;
+
+            if (isNoteOn) {
+                const noteName = midiToNoteName(note);
+                const frequency = midiToFrequency(note);
+
+                // Store note with its frequency
+                activeNotes.set(note, frequency);
+
+                // Update display
+                updateNoteDisplay();
+                noteDisplay.classList.add('active');
+                lastNoteDiv.textContent = noteName;
+                velocityDiv.textContent = velocity;
+                activeNotesDiv.textContent = activeNotes.size;
+
+                setTimeout(() => {
+                    noteDisplay.classList.remove('active');
+                }, 200);
+            }
+
+            if (isNoteOff) {
+                activeNotes.delete(note);
+                activeNotesDiv.textContent = activeNotes.size;
+
+                if (activeNotes.size === 0) {
+                    setTimeout(() => {
+                        if (activeNotes.size === 0) {
+                            updateNoteDisplay();
+                        }
+                    }, 1000);
+                } else {
+                    // Update to show remaining notes
+                    updateNoteDisplay();
+                }
+            }
+        }
+
+        function onMIDISuccess(access) {
+            midiAccess = access;
+            const inputs = midiAccess.inputs;
+
+            if (inputs.size === 0) {
+                updateStatus('No MIDI devices found. Please connect a MIDI keyboard and try again.', 'error');
+                return;
+            }
+
+            updateStatus(`Connected! Found ${inputs.size} MIDI device(s). Play some notes!`, 'connected');
+            connectButton.disabled = true;
+            connectButton.textContent = 'Connected';
+
+            // Listen to all MIDI inputs
+            inputs.forEach((input) => {
+                input.onmidimessage = onMIDIMessage;
+            });
+        }
+
+        function onMIDIFailure() {
+            updateStatus('Failed to access MIDI devices. Make sure you granted permission and your browser supports Web MIDI.', 'error');
+        }
+
+        connectButton.addEventListener('click', () => {
+            if (navigator.requestMIDIAccess) {
+                updateStatus('Requesting MIDI access...', 'waiting');
+                navigator.requestMIDIAccess()
+                    .then(onMIDISuccess)
+                    .catch(onMIDIFailure);
+            } else {
+                updateStatus('Web MIDI API is not supported in this browser. Try Chrome, Edge, or Opera.', 'error');
+            }
+        });
+
+        // Check for support on load
+        if (!navigator.requestMIDIAccess) {
+            updateStatus('Web MIDI API is not supported in this browser. Try Chrome, Edge, or Opera.', 'error');
+            connectButton.disabled = true;
+        }
+    </script>
+</body>
+</html>
