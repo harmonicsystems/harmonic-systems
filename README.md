@@ -8,9 +8,8 @@ A unified platform supporting a new kind of musical practice - one that treats m
 
 ## Quick Links
 
-- [Landing Page Content](./LANDING_PAGE.md)
-- [Repository Structure](./REPO_STRUCTURE.md)
-- [Session Philosophy](./content/sessions/README.md)
+- [Landing Page Content](./docs/LANDING.md)
+- [Repository Structure](./docs/REPOSITORY.md)
 
 ## Immediate Next Steps
 
@@ -103,16 +102,3 @@ Harmonic Systems Studio
 ---
 
 *Start where you are. Use what you have. Do what you can.*
-
-## First Commit
-
-```bash
-git init
-git add .
-git commit -m "Beginning Harmonic Systems: where frequency meets philosophy"
-git branch -M main
-git remote add origin https://github.com/[your-username]/harmonic-systems.git
-git push -u origin main
-```
-
-Let's build this. 🎵
