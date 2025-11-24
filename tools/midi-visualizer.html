@@ -26,6 +26,44 @@
             background: white;
             border-radius: 4px;
             border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .wave-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+            margin-top: 8px;
+            font-size: 0.85em;
+        }
+
+        .wave-info {
+            font-family: 'Inter', monospace;
+            font-size: 0.8em;
+            color: var(--secondary);
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        .freeze-button {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            font-size: 0.85em;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .freeze-button:hover {
+            background: var(--primary);
+        }
+
+        .freeze-button.frozen {
+            background: #e74c3c;
         }
 
         .note-display {
@@ -223,6 +261,13 @@
                     Play a note...
                 </div>
                 <canvas id="waveCanvas" class="wave-canvas" style="margin: 16px 0; height: 120px;"></canvas>
+                <div class="wave-controls">
+                    <button id="freezeButton" class="freeze-button">Freeze Animation</button>
+                    <label>
+                        <input type="checkbox" id="showCyclesCheckbox"> Show Cycle Markers
+                    </label>
+                </div>
+                <div id="waveInfo" class="wave-info"></div>
                 <div id="frequencyDisplay" class="frequency-display" style="margin-bottom: 8px;">
                     —
                 </div>
@@ -296,16 +341,38 @@
         const activeNotesDiv = document.getElementById('activeNotes');
         const canvas = document.getElementById('waveCanvas');
         const ctx = canvas.getContext('2d');
+        const waveInfo = document.getElementById('waveInfo');
+        const freezeButton = document.getElementById('freezeButton');
+        const showCyclesCheckbox = document.getElementById('showCyclesCheckbox');
 
         let midiAccess = null;
         let activeNotes = new Map(); // Changed to Map to store note -> frequency
         let currentFrequency = 0;
         let animationId = null;
         let useFlats = false;
+        let animationFrozen = false;
+        let showCycleMarkers = false;
+        let frozenTime = 0;
 
         const notePreferenceSelect = document.getElementById('notePreference');
         notePreferenceSelect.addEventListener('change', (e) => {
             useFlats = e.target.value === 'flats';
+        });
+
+        freezeButton.addEventListener('click', () => {
+            animationFrozen = !animationFrozen;
+            if (animationFrozen) {
+                frozenTime = Date.now() * 0.001;
+                freezeButton.textContent = 'Resume Animation';
+                freezeButton.classList.add('frozen');
+            } else {
+                freezeButton.textContent = 'Freeze Animation';
+                freezeButton.classList.remove('frozen');
+            }
+        });
+
+        showCyclesCheckbox.addEventListener('change', (e) => {
+            showCycleMarkers = e.target.checked;
         });
 
         // Set canvas size
@@ -407,13 +474,50 @@
             const frequencies = Array.from(activeNotes.values());
 
             if (frequencies.length === 0) {
+                waveInfo.textContent = '';
                 // Continue animation even when no note
                 requestAnimationFrame(drawWave);
                 return;
             }
 
-            // Animate the wave
-            const time = Date.now() * 0.001; // Slower animation for clarity
+            // Animate the wave (or freeze it)
+            const time = animationFrozen ? frozenTime : Date.now() * 0.001;
+
+            // Calculate wavelength to show 2.5 complete cycles
+            const cyclesShown = 2.5;
+            const pixelsPerCycle = width / cyclesShown;
+
+            // Update info display
+            let infoText = `Canvas width: ${Math.round(width)}px | Showing ${cyclesShown} cycles | `;
+            if (frequencies.length === 1) {
+                infoText += `Wavelength: ${Math.round(pixelsPerCycle)}px (${Math.round(width / pixelsPerCycle * 10) / 10} cycles visible)`;
+            } else {
+                infoText += `${frequencies.length} frequencies displayed`;
+            }
+            waveInfo.textContent = infoText;
+
+            // Draw cycle markers if enabled
+            if (showCycleMarkers) {
+                ctx.strokeStyle = '#95a5a6';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([3, 3]);
+                for (let i = 0; i <= cyclesShown; i++) {
+                    const x = (i / cyclesShown) * width;
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, height);
+                    ctx.stroke();
+                }
+                ctx.setLineDash([]);
+
+                // Label the cycles
+                ctx.fillStyle = '#95a5a6';
+                ctx.font = '10px Inter';
+                for (let i = 0; i <= cyclesShown; i++) {
+                    const x = (i / cyclesShown) * width;
+                    ctx.fillText(`${i}`, x + 2, 12);
+                }
+            }
 
             // Draw each active frequency
             frequencies.forEach((freq, index) => {
@@ -422,10 +526,6 @@
                 ctx.strokeStyle = colors[index % colors.length];
                 ctx.lineWidth = 2;
                 ctx.beginPath();
-
-                // Calculate wavelength to show 2-3 complete cycles
-                const cyclesShown = 2.5;
-                const pixelsPerCycle = width / cyclesShown;
 
                 for (let x = 0; x <= width; x += 1) {
                     // Properly calculate phase based on actual frequency
