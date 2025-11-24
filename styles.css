@@ -1,0 +1,272 @@
+:root {
+    --primary: #2c3e50;
+    --secondary: #7f8c8d;
+    --accent: #95a5a6;
+    --bg: #fefefe;
+    --text: #2c3e50;
+    --border: #ecf0f1;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    line-height: 1.7;
+    color: var(--text);
+    background: var(--bg);
+    font-size: 18px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 48px 24px;
+}
+
+/* Navigation */
+.site-nav {
+    background: var(--primary);
+    color: white;
+    padding: 16px 0;
+    margin-bottom: 48px;
+}
+
+.site-nav .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+
+.site-nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.site-nav a:hover {
+    color: var(--accent);
+}
+
+.nav-home {
+    font-size: 1.2em;
+    font-weight: 600;
+}
+
+.nav-links {
+    display: flex;
+    gap: 24px;
+}
+
+/* Headers */
+header {
+    text-align: center;
+    margin-bottom: 64px;
+    padding-bottom: 48px;
+    border-bottom: 2px solid var(--border);
+}
+
+h1 {
+    font-size: 2.5em;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--primary);
+}
+
+.subtitle {
+    font-size: 1.3em;
+    color: var(--secondary);
+    font-weight: 400;
+    margin-bottom: 32px;
+}
+
+.intro {
+    font-size: 1.1em;
+    color: var(--secondary);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Typography */
+section {
+    margin-bottom: 64px;
+}
+
+h2 {
+    font-size: 1.8em;
+    margin-bottom: 24px;
+    color: var(--primary);
+    font-weight: 600;
+}
+
+h3 {
+    font-size: 1.3em;
+    margin-top: 32px;
+    margin-bottom: 16px;
+    color: var(--primary);
+    font-weight: 600;
+}
+
+p {
+    margin-bottom: 24px;
+}
+
+a {
+    color: var(--primary);
+    text-decoration: underline;
+}
+
+a:hover {
+    color: var(--accent);
+}
+
+ul {
+    list-style: none;
+    margin-bottom: 24px;
+}
+
+li {
+    margin-bottom: 16px;
+    padding-left: 24px;
+    position: relative;
+}
+
+li:before {
+    content: "—";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+}
+
+strong {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 48px 0;
+}
+
+.emphasis {
+    font-size: 1.1em;
+    color: var(--secondary);
+    font-style: italic;
+    text-align: center;
+    margin: 32px 0;
+}
+
+/* Blog specific */
+.blog-post-preview {
+    margin-bottom: 48px;
+    padding-bottom: 48px;
+    border-bottom: 1px solid var(--border);
+}
+
+.blog-post-preview:last-of-type {
+    border-bottom: none;
+}
+
+.blog-post-preview h2 {
+    margin-bottom: 8px;
+}
+
+.blog-post-preview h2 a {
+    text-decoration: none;
+}
+
+.blog-post-preview h2 a:hover {
+    color: var(--accent);
+}
+
+.post-meta {
+    color: var(--secondary);
+    font-size: 0.9em;
+    margin-bottom: 16px;
+}
+
+.blog-post header {
+    text-align: left;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.blog-post h1 {
+    text-align: left;
+    font-size: 2.2em;
+}
+
+.post-footer {
+    margin-top: 64px;
+    padding-top: 48px;
+    border-top: 2px solid var(--border);
+    text-align: center;
+    color: var(--secondary);
+}
+
+/* Curriculum specific */
+.curriculum-section {
+    margin-bottom: 48px;
+}
+
+.lesson-list {
+    margin-left: 24px;
+}
+
+/* Values grid (from original landing page) */
+.values-grid {
+    display: grid;
+    gap: 32px;
+    margin-top: 32px;
+}
+
+.value {
+    padding: 24px;
+    background: #fafafa;
+    border-left: 3px solid var(--accent);
+}
+
+.value h3 {
+    margin-top: 0;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    margin-top: 64px;
+    padding-top: 48px;
+    border-top: 2px solid var(--border);
+    color: var(--secondary);
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    body {
+        font-size: 16px;
+    }
+
+    h1 {
+        font-size: 2em;
+    }
+
+    .container {
+        padding: 32px 16px;
+    }
+
+    .nav-links {
+        gap: 16px;
+        font-size: 0.9em;
+    }
+
+    .site-nav .container {
+        flex-direction: column;
+        gap: 16px;
+    }
+}
