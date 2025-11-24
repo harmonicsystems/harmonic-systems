@@ -16,7 +16,7 @@
 
 ## What This Is
 
-A unified platform supporting a new kind of musical practice - one that treats music like yoga: a practice of exploration rather than performance. Built by someone who is equally comfortable with synthesis parameters and speech pathology, with folk traditions and frequency analysis.
+A unified platform supporting a new kind of musical practice - one that treats music like yoga: a practice of exploration rather than performance. Built by someone who is equally comfortable with synthesis parameters and communication disorders, with folk traditions and frequency analysis.
 
 ## Quick Links
 
