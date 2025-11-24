@@ -1,6 +1,18 @@
 # Harmonic Systems Studio
 
-> Digital infrastructure for analog musical experiences
+<div align="center">
+
+**Digital infrastructure for analog musical experiences**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/harmonicsystems/harmonic-systems/graphs/commit-activity)
+
+[Overview](#what-this-is) • [Documentation](./docs) • [Roadmap](#immediate-next-steps) • [Philosophy](#philosophy-in-practice) • [Contributing](#contributing)
+
+</div>
+
+---
 
 ## What This Is
 
@@ -93,12 +105,35 @@ A unified platform supporting a new kind of musical practice - one that treats m
 
 We're drowning in digital stimulation while starving for embodied experience. This practice offers a third way: using our technical powers to create spaces for analog connection. It's not anti-technology - it's technology in service of human resonance.
 
+## Contributing
+
+This is primarily a personal practice platform, but contributions are welcome! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+
+Key principles for contributors:
+- Accessibility and neurodivergent-affirming design first
+- Respect the analog-first philosophy
+- Test on slow connections and low-end devices
+- Document cultural sources and traditions
+- Privacy-focused approaches (no tracking, no data mining)
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
+Note: While the platform code is open source, curriculum materials and session content may have separate licensing.
+
 ## Contact
 
-David [Your Last Name]
+**David Nyman**
 Harmonic Systems Studio
-[Your location]
+[harmonic-systems.studio](https://harmonic-systems.studio) (coming soon)
 
 ---
 
+<div align="center">
+
 *Start where you are. Use what you have. Do what you can.*
+
+**Building technology in service of human resonance**
+
+</div>
