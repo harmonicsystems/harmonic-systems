@@ -229,6 +229,51 @@ strong {
     margin-left: 24px;
 }
 
+/* Details/summary for collapsible sections */
+details.curriculum-section {
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+}
+
+details.curriculum-section summary {
+    cursor: pointer;
+    list-style: none;
+    position: relative;
+    padding-left: 28px;
+}
+
+details.curriculum-section summary::-webkit-details-marker {
+    display: none;
+}
+
+details.curriculum-section summary::before {
+    content: '▶';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    color: var(--accent);
+    transition: transform 0.2s;
+}
+
+details.curriculum-section[open] summary::before {
+    transform: rotate(90deg);
+}
+
+details.curriculum-section summary h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    display: inline-block;
+}
+
+details.curriculum-section summary p {
+    margin-bottom: 0;
+}
+
+details.curriculum-section summary:hover {
+    color: var(--accent);
+}
+
 /* Values grid (from original landing page) */
 .values-grid {
     display: grid;
