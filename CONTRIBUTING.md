@@ -110,6 +110,62 @@ pnpm a11y
 - Clear stop/pause controls
 - Respect system audio settings
 
+## Content & Sourcing Guidelines
+
+### All Content Must Include Sources
+
+This is a living repository of curated knowledge. All blog posts, lessons, and informational content **must include a Sources section**. This applies even when:
+
+- Summarizing common knowledge
+- Paraphrasing from Wikipedia
+- Drawing from personal expertise
+- Synthesizing multiple sources
+
+**Why this matters:** We're building a second brain, not claiming original authorship of established knowledge. Readers should always be able to trace ideas back to their origins and dive deeper.
+
+### Citation Format
+
+Use the template in `blog/TEMPLATE.html` as a starting point. Sources sections should:
+
+1. **Be organized by topic** - Group related sources under relevant headings
+2. **Mix accessible and academic sources** - Wikipedia, blogs, and videos alongside peer-reviewed papers
+3. **Link everything possible** - Make it easy for readers to explore further
+4. **Use proper academic format** - For papers: Author. (Year). *Title*. Journal/Publisher.
+5. **Include context** - Note if a source is Wikipedia, a documentary, a research paper, etc.
+
+**Example structure:**
+```html
+<h2>Sources</h2>
+
+<h3>Foundational Concepts</h3>
+<ul>
+    <li><a href="[URL]">[Topic]</a> (Wikipedia)</li>
+    <li>Author. (Year). <em>Title</em>. Publisher.</li>
+</ul>
+
+<h3>Specific Research</h3>
+<ul>
+    <li>Author et al. (Year). Study title. <em>Journal Name</em>, vol(issue), pages.</li>
+</ul>
+```
+
+### What Needs Sources
+
+- **Blog posts**: Always include Sources section before footer
+- **Playlist descriptions**: Cite documentaries, articles, Wikipedia when discussing history/context
+- **Lessons**: Reference teaching materials, research, or traditional sources
+- **Tools documentation**: Cite relevant standards, APIs, or educational resources
+
+### When Wikipedia Is Enough
+
+Wikipedia is a completely valid source for:
+- Defining established concepts (fundamental frequency, harmonic series)
+- Historical timelines (music history, instrument development)
+- Introductory explanations of scientific phenomena
+- Biographical information about musicians/composers
+
+For deeper research or contested topics, supplement Wikipedia with academic papers, books, or primary sources.
+
 ## Cultural Contribution Guidelines
 
 When adding content related to musical traditions:

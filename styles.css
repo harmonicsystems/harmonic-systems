@@ -394,6 +394,172 @@ footer {
     font-style: italic;
 }
 
+/* Tag system */
+.post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    margin-bottom: 16px;
+}
+
+.tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid;
+}
+
+.tag:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Subtle tag colors - muted, low-stimulation palette */
+.tag.all-posts {
+    background: #f5f5f5;
+    border-color: #d0d0d0;
+    color: var(--secondary);
+}
+
+.tag.voice-science {
+    background: #e8f4f8;
+    border-color: #b8d4e0;
+    color: #2c5f7a;
+}
+
+.tag.nervous-system {
+    background: #f0e8f4;
+    border-color: #d4b8e0;
+    color: #5f2c7a;
+}
+
+.tag.lullabies {
+    background: #f4f0e8;
+    border-color: #e0d4b8;
+    color: #7a5f2c;
+}
+
+.tag.folk-music {
+    background: #e8f4e8;
+    border-color: #b8e0b8;
+    color: #2c7a2c;
+}
+
+.tag.synthesis {
+    background: #f8e8e8;
+    border-color: #e0b8b8;
+    color: #7a2c2c;
+}
+
+.tag.research {
+    background: #e8f0f4;
+    border-color: #b8ccd4;
+    color: #2c4a5f;
+}
+
+.tag.tutorial {
+    background: #f4e8f0;
+    border-color: #e0b8cc;
+    color: #7a2c5f;
+}
+
+.tag.case-study {
+    background: #f0f4e8;
+    border-color: #cce0b8;
+    color: #4a5f2c;
+}
+
+.tag.frequency {
+    background: #e8f4f0;
+    border-color: #b8e0cc;
+    color: #2c7a4a;
+}
+
+.tag.communication-disorders {
+    background: #f4e8e8;
+    border-color: #e0c0c0;
+    color: #7a3c3c;
+}
+
+.tag.cultural-context {
+    background: #f8f4e8;
+    border-color: #e0d8b8;
+    color: #7a6f2c;
+}
+
+/* Tag filter controls */
+details.tag-filters {
+    margin-bottom: 32px;
+    padding: 16px 20px;
+    background: #fafafa;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+details.tag-filters summary {
+    cursor: pointer;
+    list-style: none;
+    position: relative;
+    padding-left: 24px;
+    margin-bottom: 0;
+}
+
+details.tag-filters summary::-webkit-details-marker {
+    display: none;
+}
+
+details.tag-filters summary::before {
+    content: '▶';
+    position: absolute;
+    left: 0;
+    top: 2px;
+    color: var(--accent);
+    transition: transform 0.2s;
+    font-size: 0.8em;
+}
+
+details.tag-filters[open] summary::before {
+    transform: rotate(90deg);
+}
+
+details.tag-filters[open] summary {
+    margin-bottom: 12px;
+}
+
+details.tag-filters summary:hover {
+    color: var(--accent);
+}
+
+.tag-filters-title {
+    font-size: 0.9rem;
+    color: var(--secondary);
+    font-weight: 500;
+}
+
+.tag-filters .post-tags {
+    margin: 0;
+}
+
+.tag.active {
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Tighter spacing for blog header */
+.blog-header {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+}
+
+/* Hidden posts when filtering */
+.blog-post-preview.hidden {
+    display: none;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
     body {
@@ -416,5 +582,14 @@ footer {
     .site-nav .container {
         flex-direction: column;
         gap: 16px;
+    }
+
+    .post-tags {
+        gap: 6px;
+    }
+
+    .tag {
+        font-size: 0.8rem;
+        padding: 3px 10px;
     }
 }

@@ -27,22 +27,125 @@
     </nav>
 
     <div class="container">
-        <header>
+        <header class="blog-header">
             <h1>Blog</h1>
             <p class="subtitle">Thoughts on music, resonance, and human nervous systems</p>
         </header>
 
-        <section class="blog-posts">
-            <article class="blog-post-preview">
+        <section>
+            <!-- Tag filters - collapsible -->
+            <details class="tag-filters">
+                <summary>
+                    <span class="tag-filters-title">Filter by topic</span>
+                </summary>
+                <div class="post-tags">
+                    <a href="?tag=all" class="tag all-posts" data-tag="all">All Posts</a>
+                    <a href="?tag=voice-science" class="tag voice-science" data-tag="voice-science">Voice Science</a>
+                    <a href="?tag=frequency" class="tag frequency" data-tag="frequency">Frequency</a>
+                    <a href="?tag=lullabies" class="tag lullabies" data-tag="lullabies">Lullabies</a>
+                    <a href="?tag=nervous-system" class="tag nervous-system" data-tag="nervous-system">Nervous System</a>
+                    <a href="?tag=communication-disorders" class="tag communication-disorders" data-tag="communication-disorders">Communication Disorders</a>
+                    <a href="?tag=research" class="tag research" data-tag="research">Research</a>
+                    <a href="?tag=folk-music" class="tag folk-music" data-tag="folk-music">Folk Music</a>
+                    <a href="?tag=synthesis" class="tag synthesis" data-tag="synthesis">Synthesis</a>
+                    <a href="?tag=cultural-context" class="tag cultural-context" data-tag="cultural-context">Cultural Context</a>
+                    <a href="?tag=case-study" class="tag case-study" data-tag="case-study">Case Study</a>
+                </div>
+            </details>
+
+            <article class="blog-post-preview" data-tags="folk-music,cultural-context,case-study">
+                <h2><a href="./2025/mbube-to-lion-sleeps-tonight.html">From Mbube to The Lion Sleeps Tonight</a></h2>
+                <p class="post-meta">January 2025 · 10 min read</p>
+                <div class="post-tags">
+                    <a href="?tag=folk-music" class="tag folk-music">Folk Music</a>
+                    <a href="?tag=cultural-context" class="tag cultural-context">Cultural Context</a>
+                    <a href="?tag=case-study" class="tag case-study">Case Study</a>
+                </div>
+                <p>The story of how Solomon Linda's "Mbube" became "The Lion Sleeps Tonight" - a case study in cultural appropriation, folk music transformation, and the structural erasure of Black artists from their own creations. Includes playlist spanning decades of versions.</p>
+            </article>
+
+            <div class="wave-break short-wave"></div>
+
+            <article class="blog-post-preview" data-tags="voice-science,frequency,lullabies,nervous-system,communication-disorders,research">
                 <h2><a href="./2025/fundamental-frequency-and-the-voice.html">Fundamental Frequency and the Voice</a></h2>
                 <p class="post-meta">January 2025 · 12 min read</p>
+                <div class="post-tags">
+                    <a href="?tag=voice-science" class="tag voice-science">Voice Science</a>
+                    <a href="?tag=frequency" class="tag frequency">Frequency</a>
+                    <a href="?tag=lullabies" class="tag lullabies">Lullabies</a>
+                    <a href="?tag=nervous-system" class="tag nervous-system">Nervous System</a>
+                    <a href="?tag=communication-disorders" class="tag communication-disorders">Communication Disorders</a>
+                    <a href="?tag=research" class="tag research">Research</a>
+                </div>
                 <p>Understanding fundamental frequency (f₀) in the human voice - what it is, why it matters, and how it connects to lullabies, communication disorders, and nervous system regulation. Exploring the research behind personalized lullabies and why your baby prefers <em>your</em> voice.</p>
             </article>
 
             <div class="wave-break calm-wave"></div>
 
-            <p class="emphasis" style="margin-top: 48px;">More posts coming soon. Subscribe via <a href="../feed.xml">RSS</a> to stay updated.</p>
+            <p class="emphasis" style="margin-top: 48px;">More posts coming soon.</p>
         </section>
+
+        <script>
+            // Simple tag filtering with progressive enhancement
+            // Works without JS (links update URL), better with JS (no page reload)
+            (function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const activeTag = urlParams.get('tag') || 'all';
+                const filterDetails = document.querySelector('details.tag-filters');
+
+                // Auto-open filters if a tag is active
+                if (activeTag !== 'all') {
+                    filterDetails.open = true;
+                }
+
+                // Mark active tag
+                document.querySelectorAll('.tag-filters .tag').forEach(tag => {
+                    if (tag.dataset.tag === activeTag) {
+                        tag.classList.add('active');
+                    }
+                });
+
+                // Filter posts
+                if (activeTag !== 'all') {
+                    document.querySelectorAll('.blog-post-preview').forEach(post => {
+                        const postTags = post.dataset.tags ? post.dataset.tags.split(',') : [];
+                        if (!postTags.includes(activeTag)) {
+                            post.classList.add('hidden');
+                        }
+                    });
+                }
+
+                // Add click handlers for smooth filtering (progressive enhancement)
+                document.querySelectorAll('.tag-filters .tag').forEach(tag => {
+                    tag.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const selectedTag = this.dataset.tag;
+
+                        // Update URL without reload
+                        const newUrl = selectedTag === 'all'
+                            ? window.location.pathname
+                            : `?tag=${selectedTag}`;
+                        window.history.pushState({}, '', newUrl);
+
+                        // Update active state
+                        document.querySelectorAll('.tag-filters .tag').forEach(t => {
+                            t.classList.remove('active');
+                        });
+                        this.classList.add('active');
+
+                        // Filter posts
+                        document.querySelectorAll('.blog-post-preview').forEach(post => {
+                            const postTags = post.dataset.tags ? post.dataset.tags.split(',') : [];
+                            if (selectedTag === 'all' || postTags.includes(selectedTag)) {
+                                post.classList.remove('hidden');
+                            } else {
+                                post.classList.add('hidden');
+                            }
+                        });
+                    });
+                });
+            })();
+        </script>
 
         <footer>
             <p>Building technology in service of human resonance</p>
