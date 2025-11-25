@@ -93,13 +93,13 @@ A unified platform supporting a new kind of musical practice - one that treats m
 - **Payments**: Stripe (sliding scale support)
 - **Analytics**: Plausible (privacy-focused)
 
-## Revenue Streams
+## Revenue Model
 
-1. **Session Fees**: $30-60 sliding scale per drop-in
-2. **Incremental Journeys**: $200-400 for 8-week series
-3. **House Concerts**: 10-20% platform fee
-4. **Lullaby Lab**: $20/month subscription
-5. **Corporate Workshops**: $500-1500 for team sessions
+1. **Session Fees**: Sliding scale for drop-in sessions
+2. **Incremental Journeys**: Multi-week series with sustained engagement
+3. **House Concerts**: Platform fee model
+4. **Lullaby Lab**: Subscription-based access
+5. **Corporate Workshops**: Custom pricing for team sessions
 
 ## Why This Matters
 

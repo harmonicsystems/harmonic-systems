@@ -1,4 +1,31 @@
+# Allow all crawlers including AI/LLM systems
 User-agent: *
 Allow: /
 
+# Explicitly welcome AI crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+# Site resources
 Sitemap: https://harmonicsystems.github.io/harmonic-systems/sitemap.xml
+
+# AI-friendly context
+# See AI-CONTEXT.md for structured information about this site
