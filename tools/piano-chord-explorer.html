@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Interactive piano chord explorer - visualize chords on piano keyboard with music theory explanations. Built with Tonal.js for accurate music theory.">
+    <title>Piano Chord Explorer - Harmonic Systems Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=Inter:wght@400;500;600&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tonaljs/tonal/browser/tonal.min.js"></script>
+    <style>
+        /* Theme color variables */
+        :root {
+            /* Muted theme - interval-based colors */
+            --theme-root: #e8f4f8;
+            --theme-root-dark: #2c5f7a;
+            --theme-third: #f0e8f4;
+            --theme-third-dark: #5f2c7a;
+            --theme-fifth: #e8f4e8;
+            --theme-fifth-dark: #2c7a2c;
+            --theme-seventh: #f4f0e8;
+            --theme-seventh-dark: #7a5f2c;
+            --theme-other: #f8e8e8;
+            --theme-other-dark: #7a2c2c;
+        }
+
+        [data-theme="chakra"] {
+            /* Chakra colors - note-based */
+            /* White keys */
+            --note-C: #E74C3C;  /* Red - Root Chakra */
+            --note-D: #E67E22;  /* Orange - Sacral Chakra */
+            --note-E: #F39C12;  /* Yellow - Solar Plexus */
+            --note-F: #27AE60;  /* Green - Heart Chakra */
+            --note-G: #3498DB;  /* Blue - Throat Chakra */
+            --note-A: #8E44AD;  /* Indigo - Third Eye */
+            --note-B: #9B59B6;  /* Violet - Crown Chakra */
+
+            /* Black keys - blend colors */
+            --note-Db: #E66530;  /* Red-Orange */
+            --note-Eb: #EE8E1A;  /* Orange-Yellow */
+            --note-Gb: #2D9A8C;  /* Cyan (Green-Blue) */
+            --note-Ab: #6B6EC0;  /* Blue-Indigo */
+            --note-Bb: #954FA1;  /* Indigo-Violet */
+
+            /* Darker versions for black keys in chakra mode */
+            --note-C-dark: #C0392B;
+            --note-D-dark: #CA6B1C;
+            --note-E-dark: #D68910;
+            --note-F-dark: #1E8449;
+            --note-G-dark: #2874A6;
+            --note-A-dark: #6C3483;
+            --note-B-dark: #7D3C98;
+            --note-Db-dark: #C4512A;
+            --note-Eb-dark: #CC7617;
+            --note-Gb-dark: #227B70;
+            --note-Ab-dark: #5356A0;
+            --note-Bb-dark: #7A4287;
+        }
+
+        [data-theme="chakra-intense"] {
+            /* More saturated chakra colors */
+            --note-C: #FF0000;  /* Pure Red */
+            --note-D: #FF7F00;  /* Pure Orange */
+            --note-E: #FFFF00;  /* Pure Yellow */
+            --note-F: #00FF00;  /* Pure Green */
+            --note-G: #0000FF;  /* Pure Blue */
+            --note-A: #4B0082;  /* Pure Indigo */
+            --note-B: #9400D3;  /* Pure Violet */
+
+            --note-Db: #FF3F00;
+            --note-Eb: #FFBF00;
+            --note-Gb: #00FF7F;
+            --note-Ab: #0066FF;
+            --note-Bb: #6F00B3;
+
+            --note-C-dark: #CC0000;
+            --note-D-dark: #CC6600;
+            --note-E-dark: #CCCC00;
+            --note-F-dark: #00CC00;
+            --note-G-dark: #0000CC;
+            --note-A-dark: #3A0066;
+            --note-B-dark: #7500A8;
+            --note-Db-dark: #CC3300;
+            --note-Eb-dark: #CC9900;
+            --note-Gb-dark: #00CC66;
+            --note-Ab-dark: #0052CC;
+            --note-Bb-dark: #59008C;
+        }
+
+        .piano-container {
+            max-width: 900px;
+            margin: 32px auto;
+            padding: 24px;
+            background: #fafafa;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+        }
+
+        .piano-keyboard {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            margin: 24px 0;
+            background: transparent;
+        }
+
+        .piano-key {
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .piano-key.white-key {
+            fill: #fefefe;
+            stroke: var(--primary);
+            stroke-width: 1.5;
+        }
+
+        .piano-key.white-key:hover {
+            fill: #f5f5f5;
+        }
+
+        /* Muted theme: Interval-based coloring */
+        :root .piano-key.white-key.interval-1,
+        [data-theme="muted"] .piano-key.white-key.interval-1 {
+            fill: var(--theme-root);
+        }
+
+        :root .piano-key.white-key.interval-3,
+        :root .piano-key.white-key.interval-b3,
+        [data-theme="muted"] .piano-key.white-key.interval-3,
+        [data-theme="muted"] .piano-key.white-key.interval-b3 {
+            fill: var(--theme-third);
+        }
+
+        :root .piano-key.white-key.interval-5,
+        :root .piano-key.white-key.interval-b5,
+        :root .piano-key.white-key.interval-5A,
+        [data-theme="muted"] .piano-key.white-key.interval-5,
+        [data-theme="muted"] .piano-key.white-key.interval-b5,
+        [data-theme="muted"] .piano-key.white-key.interval-5A {
+            fill: var(--theme-fifth);
+        }
+
+        :root .piano-key.white-key.interval-7,
+        :root .piano-key.white-key.interval-b7,
+        :root .piano-key.white-key.interval-7M,
+        [data-theme="muted"] .piano-key.white-key.interval-7,
+        [data-theme="muted"] .piano-key.white-key.interval-b7,
+        [data-theme="muted"] .piano-key.white-key.interval-7M {
+            fill: var(--theme-seventh);
+        }
+
+        :root .piano-key.white-key.interval-2,
+        :root .piano-key.white-key.interval-4,
+        :root .piano-key.white-key.interval-6,
+        :root .piano-key.white-key.interval-9,
+        [data-theme="muted"] .piano-key.white-key.interval-2,
+        [data-theme="muted"] .piano-key.white-key.interval-4,
+        [data-theme="muted"] .piano-key.white-key.interval-6,
+        [data-theme="muted"] .piano-key.white-key.interval-9 {
+            fill: var(--theme-other);
+        }
+
+        .piano-key.black-key {
+            fill: var(--primary);
+            stroke: var(--primary);
+            stroke-width: 1;
+        }
+
+        .piano-key.black-key:hover {
+            fill: #3d4f61;
+        }
+
+        :root .piano-key.black-key.interval-1,
+        [data-theme="muted"] .piano-key.black-key.interval-1 {
+            fill: var(--theme-root-dark);
+        }
+
+        :root .piano-key.black-key.interval-3,
+        :root .piano-key.black-key.interval-b3,
+        [data-theme="muted"] .piano-key.black-key.interval-3,
+        [data-theme="muted"] .piano-key.black-key.interval-b3 {
+            fill: var(--theme-third-dark);
+        }
+
+        :root .piano-key.black-key.interval-5,
+        :root .piano-key.black-key.interval-b5,
+        :root .piano-key.black-key.interval-5A,
+        [data-theme="muted"] .piano-key.black-key.interval-5,
+        [data-theme="muted"] .piano-key.black-key.interval-b5,
+        [data-theme="muted"] .piano-key.black-key.interval-5A {
+            fill: var(--theme-fifth-dark);
+        }
+
+        :root .piano-key.black-key.interval-7,
+        :root .piano-key.black-key.interval-b7,
+        :root .piano-key.black-key.interval-7M,
+        [data-theme="muted"] .piano-key.black-key.interval-7,
+        [data-theme="muted"] .piano-key.black-key.interval-b7,
+        [data-theme="muted"] .piano-key.black-key.interval-7M {
+            fill: var(--theme-seventh-dark);
+        }
+
+        :root .piano-key.black-key.interval-2,
+        :root .piano-key.black-key.interval-4,
+        :root .piano-key.black-key.interval-6,
+        :root .piano-key.black-key.interval-9,
+        [data-theme="muted"] .piano-key.black-key.interval-2,
+        [data-theme="muted"] .piano-key.black-key.interval-4,
+        [data-theme="muted"] .piano-key.black-key.interval-6,
+        [data-theme="muted"] .piano-key.black-key.interval-9 {
+            fill: var(--theme-other-dark);
+        }
+
+        /* Chakra themes: Note-based coloring */
+        [data-theme="chakra"] .piano-key.white-key.note-C,
+        [data-theme="chakra-intense"] .piano-key.white-key.note-C {
+            fill: var(--note-C);
+        }
+
+        [data-theme="chakra"] .piano-key.white-key.note-D,
+        [data-theme="chakra-intense"] .piano-key.white-key.note-D {
+            fill: var(--note-D);
+        }
+
+        [data-theme="chakra"] .piano-key.white-key.note-E,
+        [data-theme="chakra-intense"] .piano-key.white-key.note-E {
+            fill: var(--note-E);
+        }
+
+        [data-theme="chakra"] .piano-key.white-key.note-F,
+        [data-theme="chakra-intense"] .piano-key.white-key.note-F {
+            fill: var(--note-F);
+        }
+
+        [data-theme="chakra"] .piano-key.white-key.note-G,
+        [data-theme="chakra-intense"] .piano-key.white-key.note-G {
+            fill: var(--note-G);
+        }
+
+        [data-theme="chakra"] .piano-key.white-key.note-A,
+        [data-theme="chakra-intense"] .piano-key.white-key.note-A {
+            fill: var(--note-A);
+        }
+
+        [data-theme="chakra"] .piano-key.white-key.note-B,
+        [data-theme="chakra-intense"] .piano-key.white-key.note-B {
+            fill: var(--note-B);
+        }
+
+        /* Black keys in chakra themes */
+        [data-theme="chakra"] .piano-key.black-key.note-Db,
+        [data-theme="chakra-intense"] .piano-key.black-key.note-Db {
+            fill: var(--note-Db-dark);
+        }
+
+        [data-theme="chakra"] .piano-key.black-key.note-Eb,
+        [data-theme="chakra-intense"] .piano-key.black-key.note-Eb {
+            fill: var(--note-Eb-dark);
+        }
+
+        [data-theme="chakra"] .piano-key.black-key.note-Gb,
+        [data-theme="chakra-intense"] .piano-key.black-key.note-Gb {
+            fill: var(--note-Gb-dark);
+        }
+
+        [data-theme="chakra"] .piano-key.black-key.note-Ab,
+        [data-theme="chakra-intense"] .piano-key.black-key.note-Ab {
+            fill: var(--note-Ab-dark);
+        }
+
+        [data-theme="chakra"] .piano-key.black-key.note-Bb,
+        [data-theme="chakra-intense"] .piano-key.black-key.note-Bb {
+            fill: var(--note-Bb-dark);
+        }
+
+        .key-label {
+            font-size: 12px;
+            fill: #1a1a1a;  /* Very dark gray for contrast on colored backgrounds */
+            font-weight: 600;  /* Bolder for better readability */
+            pointer-events: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .key-label.black-key-label {
+            fill: white;
+            font-weight: 600;
+        }
+
+        /* Active key note indicators */
+        .note-indicator-circle {
+            pointer-events: none;
+        }
+
+        .note-indicator-text {
+            font-size: 13px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            pointer-events: none;
+            fill: var(--primary); /* Always dark text on white circles */
+        }
+
+        .chord-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 24px 0;
+        }
+
+        .chord-selector label {
+            font-weight: 500;
+            color: var(--primary);
+            min-width: 80px;
+        }
+
+        .chord-selector select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            color: var(--text);
+            background: white;
+            min-width: 120px;
+        }
+
+        .chord-info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-top: 24px;
+        }
+
+        .chord-info h3 {
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+
+        .note-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .note-badge {
+            padding: 4px 12px;
+            background: var(--accent);
+            color: white;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .note-badge.root-note {
+            background: #2c5f7a;
+        }
+
+        .controls {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* Interval legend */
+        .interval-legend {
+            margin-top: 16px;
+            padding: 16px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .interval-legend summary {
+            cursor: pointer;
+            list-style: none;
+            user-select: none;
+        }
+
+        .interval-legend summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .interval-legend summary span:first-child {
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+
+        .interval-legend[open] summary span:first-child {
+            transform: rotate(90deg);
+        }
+
+        #legend-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 32px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .legend-color.root { background: var(--theme-root); }
+        .legend-color.third { background: var(--theme-third); }
+        .legend-color.fifth { background: var(--theme-fifth); }
+        .legend-color.seventh { background: var(--theme-seventh); }
+        .legend-color.other { background: var(--theme-other); }
+
+        .legend-label {
+            font-size: 0.9rem;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* Sharp/Flat toggle */
+        .notation-toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .notation-toggle label {
+            font-size: 0.9rem;
+            color: var(--primary);
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .toggle-buttons {
+            display: flex;
+            gap: 4px;
+        }
+
+        .toggle-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--primary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .toggle-btn:first-child {
+            border-radius: 4px 0 0 4px;
+        }
+
+        .toggle-btn:last-child {
+            border-radius: 0 4px 4px 0;
+        }
+
+        .toggle-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .toggle-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <nav class="site-nav">
+        <div class="container">
+            <a href="../" class="nav-home">Harmonic Systems</a>
+            <div class="nav-links">
+                <a href="../blog/">Blog</a>
+                <a href="../lessons/">Lessons</a>
+                <a href="../tools/">Tools</a>
+                <a href="../playlists/">Playlists</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header>
+            <h1>Piano Chord Explorer</h1>
+            <p class="subtitle">Visualize chords on the keyboard and understand their structure</p>
+        </header>
+
+        <section>
+            <p>Select a chord to see it on the piano keyboard. This tool uses <strong>Tonal.js</strong> for accurate music theory - all chord structures follow standard music theory conventions.</p>
+        </section>
+
+        <div class="piano-container">
+            <div class="controls">
+                <div class="notation-toggle">
+                    <label>Accidentals:</label>
+                    <div class="toggle-buttons">
+                        <button class="toggle-btn active" data-notation="flats">♭ Flats</button>
+                        <button class="toggle-btn" data-notation="sharps">♯ Sharps</button>
+                    </div>
+                </div>
+
+                <div class="chord-selector">
+                    <label for="color-theme">Theme:</label>
+                    <select id="color-theme">
+                        <option value="chakra">Chakra</option>
+                        <option value="chakra-intense">Chakra (Intense)</option>
+                        <option value="muted">Muted (Intervals)</option>
+                    </select>
+                </div>
+
+                <div class="chord-selector">
+                    <label for="root-note">Root Note:</label>
+                    <select id="root-note">
+                        <option value="C">C</option>
+                        <option value="Db">Db / C#</option>
+                        <option value="D">D</option>
+                        <option value="Eb">Eb / D#</option>
+                        <option value="E">E</option>
+                        <option value="F">F</option>
+                        <option value="Gb">Gb / F#</option>
+                        <option value="G">G</option>
+                        <option value="Ab">Ab / G#</option>
+                        <option value="A">A</option>
+                        <option value="Bb">Bb / A#</option>
+                        <option value="B">B</option>
+                    </select>
+                </div>
+
+                <div class="chord-selector">
+                    <label for="chord-type">Chord Type:</label>
+                    <select id="chord-type">
+                        <option value="major">Major</option>
+                        <option value="minor">Minor</option>
+                        <option value="7">Dominant 7th</option>
+                        <option value="maj7">Major 7th</option>
+                        <option value="m7">Minor 7th</option>
+                        <option value="dim">Diminished</option>
+                        <option value="aug">Augmented</option>
+                        <option value="sus2">Suspended 2nd</option>
+                        <option value="sus4">Suspended 4th</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-bottom: 16px;">
+                <button id="pan-left" class="toggle-btn" style="border-radius: 4px;">◀ Left</button>
+                <span id="octave-range" style="font-size: 0.9rem; color: var(--secondary); min-width: 100px; text-align: center;">C4 - B5</span>
+                <button id="pan-right" class="toggle-btn" style="border-radius: 4px;">Right ▶</button>
+            </div>
+
+            <svg class="piano-keyboard" id="piano" viewBox="0 0 840 200" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                    <!-- Patterns for accessibility -->
+                    <pattern id="pattern-third" patternUnits="userSpaceOnUse" width="8" height="8">
+                        <path d="M-1,1 l2,-2 M0,8 l8,-8 M7,9 l2,-2" stroke="rgba(0,0,0,0.15)" stroke-width="1.5"/>
+                    </pattern>
+                    <pattern id="pattern-fifth" patternUnits="userSpaceOnUse" width="6" height="6">
+                        <circle cx="3" cy="3" r="1" fill="rgba(0,0,0,0.15)"/>
+                    </pattern>
+                    <pattern id="pattern-seventh" patternUnits="userSpaceOnUse" width="8" height="4">
+                        <path d="M0,2 h8" stroke="rgba(0,0,0,0.15)" stroke-width="1.5"/>
+                    </pattern>
+                    <pattern id="pattern-other" patternUnits="userSpaceOnUse" width="8" height="8">
+                        <path d="M0,8 l8,-8 M-1,1 l2,-2 M7,9 l2,-2" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
+                        <path d="M0,0 l8,8 M-1,7 l2,2 M7,-1 l2,2" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
+                    </pattern>
+                </defs>
+                <!-- Piano keys will be generated here -->
+            </svg>
+
+            <details class="interval-legend" id="legend" open>
+                <summary style="cursor: pointer; list-style: none; font-weight: 600; margin-bottom: 8px;">
+                    <span style="display: inline-block; width: 16px; text-align: center;">▶</span>
+                    <span id="legend-title">Color Legend</span>
+                </summary>
+                <div id="legend-content">
+                    <!-- Legend content will be generated dynamically based on theme -->
+                </div>
+            </details>
+
+            <div class="chord-info" id="chord-info">
+                <h3>Chord Information</h3>
+                <p id="chord-name">Select a chord to see details</p>
+                <div id="chord-notes"></div>
+                <p id="chord-intervals" style="margin-top: 12px; color: var(--secondary);"></p>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <section>
+            <h2>How to Use</h2>
+            <ul>
+                <li>Choose a root note and chord type from the dropdowns</li>
+                <li>Select a color theme: <strong>Chakra</strong> (colors by note name, connecting to body centers) or <strong>Muted</strong> (colors by interval function)</li>
+                <li>Toggle between sharps (♯) and flats (♭) for black key notation</li>
+                <li>Active chord notes are circled on the keyboard</li>
+                <li>Patterns show chord structure: root is solid, thirds have diagonal lines (///), fifths have dots (••), sevenths have horizontal lines (===)</li>
+                <li>Hover over keys to see individual note names</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>About the Chakra System</h2>
+            <p>The <strong>Chakra theme</strong> maps each note to a traditional chakra center, connecting sound frequencies to body awareness:</p>
+            <ul>
+                <li><strong>C (Red):</strong> Root Chakra - grounding, survival</li>
+                <li><strong>D (Orange):</strong> Sacral Chakra - creativity, emotion</li>
+                <li><strong>E (Yellow):</strong> Solar Plexus - power, confidence</li>
+                <li><strong>F (Green):</strong> Heart Chakra - love, connection</li>
+                <li><strong>G (Blue):</strong> Throat Chakra - communication, expression</li>
+                <li><strong>A (Indigo):</strong> Third Eye - intuition, perception</li>
+                <li><strong>B (Violet):</strong> Crown Chakra - consciousness, transcendence</li>
+            </ul>
+            <p>This visualization helps you see chord structures while maintaining awareness of how different notes relate to body centers and nervous system regulation.</p>
+        </section>
+
+        <section>
+            <h2>About Music Theory</h2>
+            <p>This tool uses <a href="https://github.com/tonaljs/tonal">Tonal.js</a>, a comprehensive music theory library. All chord structures, intervals, and note relationships follow standard Western music theory.</p>
+
+            <p><strong>Intervals:</strong> The numbers you see (like "1 3 5") represent the scale degrees. A major chord uses the 1st, 3rd, and 5th notes of the major scale. A minor chord lowers the 3rd by a half step (represented as "b3").</p>
+
+            <p><strong>Muted theme:</strong> Shows intervals by function - roots, thirds, fifths, sevenths, etc. Good for understanding chord construction from a music theory perspective.</p>
+        </section>
+
+        <footer>
+            <p>Building technology in service of human resonance</p>
+            <p style="margin-top: 16px;"><a href="https://github.com/harmonicsystems/harmonic-systems">View on GitHub</a></p>
+        </footer>
+    </div>
+
+    <script>
+        const { Chord, Note } = Tonal;
+
+        // Piano keyboard layout - 2 octaves starting from C4
+        const whiteKeys = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+        const blackKeyPositions = {
+            'Db': 1, 'Eb': 2, 'Gb': 4, 'Ab': 5, 'Bb': 6
+        };
+
+        // Sharp/Flat conversion
+        const flatToSharp = {
+            'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#'
+        };
+        const sharpToFlat = {
+            'C#': 'Db', 'D#': 'Eb', 'F#': 'Gb', 'G#': 'Ab', 'A#': 'Bb'
+        };
+
+        let useFlats = true; // Default to flats
+
+        const whiteKeyWidth = 60;
+        const whiteKeyHeight = 180;
+        const blackKeyWidth = 36;
+        const blackKeyHeight = 110;
+
+        let currentChord = null;
+
+        // Keyboard range - start with C4-B5 (2 octaves), allow panning from C2 to C7
+        let startOctave = 4;
+        let endOctave = 5;
+        const minOctave = 2;
+        const maxOctave = 7;
+
+        // Convert note name based on notation preference
+        function getNoteName(note) {
+            if (useFlats) {
+                return sharpToFlat[note] || note;
+            } else {
+                return flatToSharp[note] || note;
+            }
+        }
+
+        function generatePiano() {
+            const svg = document.getElementById('piano');
+
+            // Clear existing keys (keep defs)
+            const defs = svg.querySelector('defs');
+            svg.innerHTML = '';
+            svg.appendChild(defs);
+
+            let whiteKeyIndex = 0;
+
+            // Generate octaves based on current range
+            for (let octave = startOctave; octave <= endOctave; octave++) {
+                // Draw white keys
+                whiteKeys.forEach((note, i) => {
+                    const x = whiteKeyIndex * whiteKeyWidth;
+                    const noteName = `${note}${octave}`;
+
+                    const key = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    key.setAttribute('x', x);
+                    key.setAttribute('y', 0);
+                    key.setAttribute('width', whiteKeyWidth);
+                    key.setAttribute('height', whiteKeyHeight);
+                    key.setAttribute('class', `piano-key white-key note-${note}`);
+                    key.setAttribute('data-note', noteName);
+                    key.setAttribute('data-note-class', Note.pitchClass(noteName));
+
+                    // Add title for hover
+                    const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                    title.textContent = noteName;
+                    key.appendChild(title);
+
+                    svg.appendChild(key);
+
+                    // Add label
+                    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    label.setAttribute('x', x + whiteKeyWidth / 2);
+                    label.setAttribute('y', whiteKeyHeight - 10);
+                    label.setAttribute('text-anchor', 'middle');
+                    label.setAttribute('class', 'key-label');
+                    label.setAttribute('data-note-class', Note.pitchClass(noteName));
+                    label.textContent = note;
+                    svg.appendChild(label);
+
+                    whiteKeyIndex++;
+                });
+            }
+
+            // Draw black keys on top
+            whiteKeyIndex = 0;
+            for (let octave = startOctave; octave <= endOctave; octave++) {
+                whiteKeys.forEach((note, i) => {
+                    Object.entries(blackKeyPositions).forEach(([blackNote, position]) => {
+                        if (position === i + 1) {
+                            const x = (whiteKeyIndex * whiteKeyWidth) + whiteKeyWidth - (blackKeyWidth / 2);
+                            const noteName = `${blackNote}${octave}`;
+                            const noteClass = Note.pitchClass(noteName);
+
+                            const key = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                            key.setAttribute('x', x);
+                            key.setAttribute('y', 0);
+                            key.setAttribute('width', blackKeyWidth);
+                            key.setAttribute('height', blackKeyHeight);
+                            key.setAttribute('class', `piano-key black-key note-${blackNote}`);
+                            key.setAttribute('data-note', noteName);
+                            key.setAttribute('data-note-class', noteClass);
+                            key.setAttribute('rx', 2);
+
+                            // Add title for hover
+                            const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                            title.textContent = noteName;
+                            key.appendChild(title);
+
+                            svg.appendChild(key);
+
+                            // Add permanent label for black key
+                            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                            label.setAttribute('x', x + blackKeyWidth / 2);
+                            label.setAttribute('y', 60); // Middle of black key
+                            label.setAttribute('text-anchor', 'middle');
+                            label.setAttribute('class', 'key-label black-key-label');
+                            label.setAttribute('data-note-class', noteClass);
+                            label.setAttribute('data-base-note', blackNote); // Store base note for conversion
+                            label.textContent = getNoteName(blackNote);
+                            svg.appendChild(label);
+                        }
+                    });
+                    whiteKeyIndex++;
+                });
+            }
+        }
+
+        // Update octave range display and button states
+        function updateOctaveDisplay() {
+            const rangeDisplay = document.getElementById('octave-range');
+            const panLeftBtn = document.getElementById('pan-left');
+            const panRightBtn = document.getElementById('pan-right');
+
+            rangeDisplay.textContent = `C${startOctave} - B${endOctave}`;
+
+            // Disable buttons at min/max range
+            panLeftBtn.disabled = startOctave <= minOctave;
+            panRightBtn.disabled = endOctave >= maxOctave;
+
+            // Update button styling for disabled state
+            if (panLeftBtn.disabled) {
+                panLeftBtn.style.opacity = '0.4';
+                panLeftBtn.style.cursor = 'not-allowed';
+            } else {
+                panLeftBtn.style.opacity = '1';
+                panLeftBtn.style.cursor = 'pointer';
+            }
+
+            if (panRightBtn.disabled) {
+                panRightBtn.style.opacity = '0.4';
+                panRightBtn.style.cursor = 'not-allowed';
+            } else {
+                panRightBtn.style.opacity = '1';
+                panRightBtn.style.cursor = 'pointer';
+            }
+        }
+
+        // Pan keyboard left (lower octaves)
+        function panLeft() {
+            if (startOctave > minOctave) {
+                startOctave--;
+                endOctave--;
+                generatePiano();
+                updateOctaveDisplay();
+                updateChord(); // Refresh chord display
+            }
+        }
+
+        // Pan keyboard right (higher octaves)
+        function panRight() {
+            if (endOctave < maxOctave) {
+                startOctave++;
+                endOctave++;
+                generatePiano();
+                updateOctaveDisplay();
+                updateChord(); // Refresh chord display
+            }
+        }
+
+        // Enharmonic equivalents - map any note to both sharp and flat versions
+        function getEnharmonicEquivalents(note) {
+            const noteClass = Note.pitchClass(note);
+            const equivalents = [noteClass];
+
+            // Add enharmonic equivalent if it exists
+            if (sharpToFlat[noteClass]) {
+                equivalents.push(sharpToFlat[noteClass]);
+            }
+            if (flatToSharp[noteClass]) {
+                equivalents.push(flatToSharp[noteClass]);
+            }
+
+            // Handle edge cases like E# = F, Cb = B, etc.
+            const edgeCases = {
+                'E#': 'F', 'Fb': 'E',
+                'B#': 'C', 'Cb': 'B'
+            };
+            if (edgeCases[noteClass]) {
+                equivalents.push(edgeCases[noteClass]);
+            }
+
+            // Reverse lookup for edge cases
+            Object.entries(edgeCases).forEach(([key, val]) => {
+                if (val === noteClass) {
+                    equivalents.push(key);
+                }
+            });
+
+            return equivalents;
+        }
+
+        // Map Tonal.js interval notation to CSS classes
+        function getIntervalClass(interval) {
+            // Tonal returns intervals like "1P", "3M", "3m", "5P", "7M", "7m", etc.
+            // Map to our CSS classes
+            const intervalMap = {
+                '1P': 'interval-1',
+                '2M': 'interval-2',
+                '2m': 'interval-2',
+                '3M': 'interval-3',
+                '3m': 'interval-b3',
+                '4P': 'interval-4',
+                '4A': 'interval-4',
+                '5P': 'interval-5',
+                '5d': 'interval-b5',
+                '5A': 'interval-5A',
+                '6M': 'interval-6',
+                '6m': 'interval-b6',
+                '7M': 'interval-7M',
+                '7m': 'interval-b7'
+            };
+
+            return intervalMap[interval] || 'interval-1';
+        }
+
+        function updateChord() {
+            const root = document.getElementById('root-note').value;
+            const type = document.getElementById('chord-type').value;
+
+            // Get chord from Tonal
+            const chordSymbol = type === 'major' ? root : `${root}${type}`;
+            currentChord = Chord.get(chordSymbol);
+
+            console.log('Chord:', currentChord); // Debug
+
+            // Clear all interval classes and indicators
+            document.querySelectorAll('.piano-key').forEach(key => {
+                // Remove all interval-* classes
+                const classes = Array.from(key.classList);
+                classes.forEach(cls => {
+                    if (cls.startsWith('interval-')) {
+                        key.classList.remove(cls);
+                    }
+                });
+            });
+
+            // Remove all existing note indicators and patterns
+            document.querySelectorAll('.note-indicator-circle, .note-indicator-text, .pattern-overlay').forEach(el => {
+                el.remove();
+            });
+
+            const svg = document.getElementById('piano');
+
+            // Highlight chord notes with interval-specific coloring
+            if (currentChord.notes && currentChord.notes.length > 0) {
+                currentChord.notes.forEach((note, index) => {
+                    const noteClass = Note.pitchClass(note);
+                    const interval = currentChord.intervals[index];
+                    const intervalClass = getIntervalClass(interval);
+
+                    console.log(`Note: ${note}, Interval: ${interval}, Class: ${intervalClass}`); // Debug
+
+                    // Get enharmonic equivalents to handle D# = Eb, etc.
+                    const equivalents = getEnharmonicEquivalents(note);
+                    console.log(`Equivalents for ${note}:`, equivalents);
+
+                    // Find all keys with any of the equivalent note classes
+                    let keys = [];
+                    equivalents.forEach(equiv => {
+                        const found = document.querySelectorAll(`.piano-key[data-note-class="${equiv}"]`);
+                        keys.push(...found);
+                    });
+
+                    keys.forEach(key => {
+                        key.classList.add(intervalClass);
+
+                        // Add pattern overlay for accessibility
+                        const rect = key.getBBox();
+                        const isBlackKey = key.classList.contains('black-key');
+
+                        // Determine which pattern to use
+                        let patternId = null;
+                        if (intervalClass.includes('interval-3') || intervalClass.includes('b3')) {
+                            patternId = 'pattern-third';
+                        } else if (intervalClass.includes('5')) {
+                            patternId = 'pattern-fifth';
+                        } else if (intervalClass.includes('7')) {
+                            patternId = 'pattern-seventh';
+                        } else if (intervalClass.includes('2') || intervalClass.includes('4')) {
+                            patternId = 'pattern-other';
+                        }
+
+                        // Add pattern overlay (not for root - root is solid)
+                        if (patternId) {
+                            const overlay = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                            overlay.setAttribute('x', rect.x);
+                            overlay.setAttribute('y', rect.y);
+                            overlay.setAttribute('width', rect.width);
+                            overlay.setAttribute('height', rect.height);
+                            overlay.setAttribute('fill', `url(#${patternId})`);
+                            overlay.setAttribute('class', 'pattern-overlay');
+                            overlay.setAttribute('pointer-events', 'none');
+                            if (isBlackKey) {
+                                overlay.setAttribute('rx', 2);
+                            }
+                            svg.appendChild(overlay);
+                        }
+                    });
+
+                    // Find the label for this note and circle it (using enharmonic equivalents)
+                    let labels = [];
+                    equivalents.forEach(equiv => {
+                        const found = document.querySelectorAll(`.key-label[data-note-class="${equiv}"]`);
+                        labels.push(...found);
+                    });
+
+                    labels.forEach(label => {
+                        // Get label position
+                        const labelX = parseFloat(label.getAttribute('x'));
+                        const labelY = parseFloat(label.getAttribute('y'));
+                        const isBlackKey = label.classList.contains('black-key-label');
+
+                        // Circle around the existing label
+                        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        circle.setAttribute('cx', labelX);
+                        circle.setAttribute('cy', labelY - 1); // Slight adjustment for better centering
+                        circle.setAttribute('r', isBlackKey ? 14 : 16);
+                        circle.setAttribute('fill', 'rgba(255, 255, 255, 0.9)'); // Semi-transparent for black keys
+                        circle.setAttribute('stroke', isBlackKey ? 'white' : 'var(--primary)');
+                        circle.setAttribute('stroke-width', '2');
+                        circle.setAttribute('class', 'note-indicator-circle');
+
+                        // Insert circle BEFORE the label so label appears on top
+                        svg.insertBefore(circle, label);
+                    });
+                });
+
+                // Update chord info with colored badges
+                document.getElementById('chord-name').textContent = `${currentChord.symbol} - ${currentChord.name}`;
+
+                // Get computed theme colors
+                const computedStyle = getComputedStyle(document.querySelector('.piano-container'));
+                const currentTheme = document.querySelector('.piano-container').getAttribute('data-theme') || 'muted';
+                const isChakraTheme = currentTheme.includes('chakra');
+
+                const notesHtml = currentChord.notes.map((note, index) => {
+                    const interval = currentChord.intervals[index];
+                    const intervalClass = getIntervalClass(interval);
+                    let bgColor;
+
+                    if (isChakraTheme) {
+                        // Chakra theme: color by note
+                        const noteClass = Note.pitchClass(note);
+                        let colorVar = `--note-${noteClass}-dark`;
+
+                        // Fallback to non-dark version if dark doesn't exist
+                        if (!computedStyle.getPropertyValue(colorVar).trim()) {
+                            colorVar = `--note-${noteClass}`;
+                        }
+
+                        bgColor = computedStyle.getPropertyValue(colorVar) || 'var(--accent)';
+                    } else {
+                        // Muted theme: color by interval
+                        let colorVar = '--theme-root-dark';
+                        if (intervalClass.includes('b3') || intervalClass.includes('interval-3')) {
+                            colorVar = '--theme-third-dark';
+                        } else if (intervalClass.includes('5')) {
+                            colorVar = '--theme-fifth-dark';
+                        } else if (intervalClass.includes('7')) {
+                            colorVar = '--theme-seventh-dark';
+                        } else if (intervalClass.includes('2') || intervalClass.includes('4')) {
+                            colorVar = '--theme-other-dark';
+                        }
+                        bgColor = computedStyle.getPropertyValue(colorVar);
+                    }
+
+                    return `<span class="note-badge" style="background: ${bgColor}">${note}</span>`;
+                }).join('');
+                document.getElementById('chord-notes').innerHTML = `<div class="note-list">${notesHtml}</div>`;
+
+                document.getElementById('chord-intervals').textContent =
+                    `Intervals: ${currentChord.intervals.join(', ')}`;
+            }
+        }
+
+        // Update labels based on notation preference
+        function updateNotation() {
+            const labels = document.querySelectorAll('.black-key-label');
+            labels.forEach(label => {
+                const baseNote = label.getAttribute('data-base-note');
+                if (baseNote) {
+                    label.textContent = getNoteName(baseNote);
+                }
+            });
+        }
+
+        // Update legend based on current theme
+        function updateLegend() {
+            const legendContent = document.getElementById('legend-content');
+            const legendTitle = document.getElementById('legend-title');
+            const currentTheme = document.querySelector('.piano-container').getAttribute('data-theme') || 'chakra';
+            const isChakraTheme = currentTheme.includes('chakra');
+
+            if (isChakraTheme) {
+                legendTitle.textContent = 'Chakra System - Note Colors';
+                // Chakra theme: show note colors
+                legendContent.innerHTML = `
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--note-C);"></div>
+                        <span class="legend-label">C - Red (Root Chakra)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--note-D);"></div>
+                        <span class="legend-label">D - Orange (Sacral)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--note-E);"></div>
+                        <span class="legend-label">E - Yellow (Solar Plexus)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--note-F);"></div>
+                        <span class="legend-label">F - Green (Heart)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--note-G);"></div>
+                        <span class="legend-label">G - Blue (Throat)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--note-A);"></div>
+                        <span class="legend-label">A - Indigo (Third Eye)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--note-B);"></div>
+                        <span class="legend-label">B - Violet (Crown)</span>
+                    </div>
+                    <div style="font-size: 0.85em; color: var(--secondary); margin-top: 8px; width: 100%;">
+                        Patterns show chord structure: root (solid), third (///), fifth (••), seventh (===)
+                    </div>
+                `;
+            } else {
+                legendTitle.textContent = 'Interval Colors';
+                // Muted theme: show interval colors
+                legendContent.innerHTML = `
+                    <div class="legend-item">
+                        <div class="legend-color root"></div>
+                        <span class="legend-label">Root (1)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color third"></div>
+                        <span class="legend-label">Third (3 or b3)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color fifth"></div>
+                        <span class="legend-label">Fifth (5)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color seventh"></div>
+                        <span class="legend-label">Seventh (7)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color other"></div>
+                        <span class="legend-label">Other (2, 4, 6, 9)</span>
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize
+        generatePiano();
+        updateOctaveDisplay();
+        updateLegend();
+        updateChord();
+
+        // Event listeners
+        document.getElementById('root-note').addEventListener('change', updateChord);
+        document.getElementById('chord-type').addEventListener('change', updateChord);
+
+        // Pan button listeners
+        document.getElementById('pan-left').addEventListener('click', panLeft);
+        document.getElementById('pan-right').addEventListener('click', panRight);
+
+        // Sharp/Flat toggle listeners (only for notation buttons)
+        document.querySelectorAll('.notation-toggle .toggle-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Update active state (only within notation toggle group)
+                document.querySelectorAll('.notation-toggle .toggle-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                // Update notation preference
+                useFlats = this.dataset.notation === 'flats';
+
+                // Update all black key labels
+                updateNotation();
+            });
+        });
+
+        // Theme selector
+        const themeSelect = document.getElementById('color-theme');
+        const pianoContainer = document.querySelector('.piano-container');
+
+        // Load saved theme from localStorage (default to chakra)
+        const savedTheme = localStorage.getItem('piano-theme') || 'chakra';
+        themeSelect.value = savedTheme;
+        pianoContainer.setAttribute('data-theme', savedTheme);
+
+        // Theme change listener
+        themeSelect.addEventListener('change', function() {
+            const theme = this.value;
+
+            // Update data-theme attribute
+            pianoContainer.setAttribute('data-theme', theme);
+
+            // Save preference
+            localStorage.setItem('piano-theme', theme);
+
+            // Update legend and chord display to refresh colors
+            updateLegend();
+            updateChord();
+        });
+    </script>
+</body>
+</html>
