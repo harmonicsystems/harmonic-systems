@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=Inter:wght@400;500;600&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@tonaljs/tonal/browser/tonal.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/abcjs/dist/abcjs-basic-min.js"></script>
     <style>
         /* Dark mode variables */
         :root {
@@ -637,6 +638,73 @@
         .freq-midi-row span {
             white-space: nowrap;
         }
+
+        /* Staff Notation Styles */
+        .notation-header {
+            color: var(--hud-text-secondary);
+        }
+
+        [data-theme="dark"] .notation-header {
+            color: var(--hud-text-secondary);
+        }
+
+        [data-theme="dark"] .notation-header .notation-label {
+            color: var(--hud-text-secondary);
+        }
+
+        .notation-section {
+            padding: 16px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notation-container {
+            width: 100%;
+            max-width: 500px;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notation-container svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .notation-placeholder {
+            color: var(--secondary);
+            font-style: italic;
+            font-size: 0.95em;
+        }
+
+        /* Dark mode for notation */
+        [data-theme="dark"] .notation-section {
+            background: var(--hud-bg-alt);
+            border-color: var(--hud-border);
+        }
+
+        [data-theme="dark"] .notation-section .notation-label {
+            color: var(--hud-text-secondary);
+        }
+
+        [data-theme="dark"] .notation-placeholder {
+            color: var(--hud-text-secondary);
+        }
+
+        /* Make abcjs SVG work in dark mode - cream/sepia card */
+        [data-theme="dark"] .notation-container svg {
+            background: #2a2a3e;
+            border-radius: 4px;
+            padding: 8px;
+            filter: invert(0.85) hue-rotate(180deg) saturate(0.8);
+        }
     </style>
 </head>
 <body>
@@ -675,6 +743,9 @@
             <label class="hud-toggle active" id="toggleMidiInfo">
                 <span>MIDI Info</span>
             </label>
+            <label class="hud-toggle active" id="toggleNotation">
+                <span>Staff</span>
+            </label>
         </div>
 
         <section>
@@ -699,6 +770,9 @@
                         <button id="freezeButton" class="freeze-button">Freeze</button>
                         <label>
                             <input type="checkbox" id="showCyclesCheckbox"> Cycles
+                        </label>
+                        <label>
+                            <input type="checkbox" id="showHarmonicsCheckbox" checked> Harmonics
                         </label>
                         <label style="margin-left: 12px;">
                             Zoom:
@@ -759,6 +833,49 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Live Staff Notation - Header always visible -->
+                <div class="notation-header" style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; margin-bottom: 8px;">
+                    <span class="notation-label" style="font-size: 0.85em; color: var(--secondary);">Staff Notation</span>
+                    <select id="keySignature" style="padding: 4px 10px; border: 1px solid var(--hud-border); border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 0.8em; background: var(--hud-bg-alt); color: var(--hud-text);">
+                        <option value="chromatic">Chromatic (use ♯/♭ pref)</option>
+                        <optgroup label="Major Keys">
+                            <option value="C">C Major (no ♯/♭)</option>
+                            <option value="G">G Major (1♯)</option>
+                            <option value="D">D Major (2♯)</option>
+                            <option value="A">A Major (3♯)</option>
+                            <option value="E">E Major (4♯)</option>
+                            <option value="B">B Major (5♯)</option>
+                            <option value="F#">F♯ Major (6♯)</option>
+                            <option value="F">F Major (1♭)</option>
+                            <option value="Bb">B♭ Major (2♭)</option>
+                            <option value="Eb">E♭ Major (3♭)</option>
+                            <option value="Ab">A♭ Major (4♭)</option>
+                            <option value="Db">D♭ Major (5♭)</option>
+                            <option value="Gb">G♭ Major (6♭)</option>
+                        </optgroup>
+                        <optgroup label="Minor Keys">
+                            <option value="Am">A Minor (no ♯/♭)</option>
+                            <option value="Em">E Minor (1♯)</option>
+                            <option value="Bm">B Minor (2♯)</option>
+                            <option value="F#m">F♯ Minor (3♯)</option>
+                            <option value="C#m">C♯ Minor (4♯)</option>
+                            <option value="G#m">G♯ Minor (5♯)</option>
+                            <option value="D#m">D♯ Minor (6♯)</option>
+                            <option value="Dm">D Minor (1♭)</option>
+                            <option value="Gm">G Minor (2♭)</option>
+                            <option value="Cm">C Minor (3♭)</option>
+                            <option value="Fm">F Minor (4♭)</option>
+                            <option value="Bbm">B♭ Minor (5♭)</option>
+                            <option value="Ebm">E♭ Minor (6♭)</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="notation-section hud-section" id="notationSection">
+                    <div class="notation-container" id="notationContainer">
+                        <span class="notation-placeholder">Play notes to see notation...</span>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -773,15 +890,18 @@
                 <li>A piano keyboard that lights up as you play (spectrum colors by note)</li>
                 <li>Real-time chord detection - the tool identifies what chord you're playing</li>
                 <li>Intervals and note structure for detected chords</li>
+                <li>Live staff notation - see your chords rendered on a musical staff</li>
                 <li>Waveform visualization showing frequency relationships</li>
                 <li>Auto-adapting keyboard range (expands to match your playing)</li>
             </ul>
 
             <p><strong>Visual feedback:</strong> Keys respond with smooth, natural transitions - fast attack when you press, gentle release when you let go. No jarring flashes or game-like effects.</p>
 
+            <p><strong>Staff notation:</strong> Uses <a href="https://www.abcjs.net/">abcjs</a> to render real standard musical notation. The clef automatically adapts - treble for high notes, bass for low notes, and grand staff when you span both ranges.</p>
+
             <p><strong>Why this matters:</strong> Learning music theory through exploration and discovery, rather than rote memorization, creates deeper understanding. Play what feels right, and let the tool help you understand what you played.</p>
 
-            <p><strong>Privacy:</strong> All processing happens in your browser using <a href="https://github.com/tonaljs/tonal">Tonal.js</a>. Nothing is recorded or sent anywhere.</p>
+            <p><strong>Privacy:</strong> All processing happens in your browser using <a href="https://github.com/tonaljs/tonal">Tonal.js</a> and <a href="https://www.abcjs.net/">abcjs</a>. Nothing is recorded or sent anywhere.</p>
         </section>
 
         <hr class="divider">
@@ -817,6 +937,7 @@
         const waveInfo = document.getElementById('waveInfo');
         const freezeButton = document.getElementById('freezeButton');
         const showCyclesCheckbox = document.getElementById('showCyclesCheckbox');
+        const showHarmonicsCheckbox = document.getElementById('showHarmonicsCheckbox');
 
         let midiAccess = null;
         let activeNotes = new Map(); // Map of note -> { frequency, velocity }
@@ -825,6 +946,7 @@
         let useFlats = false;
         let animationFrozen = false;
         let showCycleMarkers = false;
+        let showHarmonics = true; // Harmonics on by default!
         let frozenTime = 0;
 
         // Piano keyboard state
@@ -1070,6 +1192,7 @@
                 chordNameDiv.textContent = 'Play some notes...';
                 chordNameDiv.classList.add('detecting');
                 chordDetailsDiv.classList.add('hidden');
+                updateNotation(); // Clear notation when no notes
                 return;
             }
 
@@ -1081,6 +1204,33 @@
                 chordNameDiv.textContent = noteName;
                 chordNameDiv.classList.remove('detecting');
                 chordDetailsDiv.classList.add('hidden');
+                updateNotation(); // Show single note on staff too!
+                return;
+            }
+
+            // For 2 notes, show the interval between them
+            if (activeNotes.size === 2) {
+                const interval = sortedMidi[1] - sortedMidi[0];
+                const intervalName = getIntervalName(interval);
+                const noteNames = sortedMidi.map(m => midiToNoteName(m));
+                const displayNotes = sortedMidi.map(midi => {
+                    const noteIndex = midi % 12;
+                    return useFlats ? noteNamesFlats[noteIndex] : noteNamesSharps[noteIndex];
+                });
+
+                chordNameDiv.textContent = intervalName;
+                chordNameDiv.classList.remove('detecting');
+                chordDetailsDiv.classList.remove('hidden');
+
+                // Show note badges
+                const badgesHTML = displayNotes.map(note => {
+                    const color = noteColors[note] || '#888';
+                    return `<span class="note-badge" style="background: ${color}">${note}</span>`;
+                }).join('');
+                chordNotesDiv.innerHTML = badgesHTML;
+                chordIntervalsDiv.textContent = `${interval} semitones`;
+
+                updateNotation();
                 return;
             }
 
@@ -1193,6 +1343,9 @@
                 chordNotesDiv.innerHTML = badgesHTML;
                 chordIntervalsDiv.textContent = 'exploring...';
             }
+
+            // Update staff notation
+            updateNotation();
         }
 
         // ===== HUD CONTROLS =====
@@ -1202,11 +1355,13 @@
         const toggleWaveform = document.getElementById('toggleWaveform');
         const toggleNoteDisplay = document.getElementById('toggleNoteDisplay');
         const toggleMidiInfo = document.getElementById('toggleMidiInfo');
+        const toggleNotation = document.getElementById('toggleNotation');
 
         // HUD Sections
         const waveformSection = document.getElementById('waveformSection');
         const noteDisplaySection = document.getElementById('noteDisplaySection');
         const midiInfoSection = document.getElementById('midiInfoSection');
+        const notationSection = document.getElementById('notationSection');
 
         // Load HUD preferences from localStorage
         const hudPrefs = JSON.parse(localStorage.getItem('hud-preferences') || '{}');
@@ -1232,6 +1387,10 @@
             midiInfoSection.classList.add('collapsed');
             toggleMidiInfo.classList.remove('active');
         }
+        if (hudPrefs.notation === false) {
+            notationSection.classList.add('collapsed');
+            toggleNotation.classList.remove('active');
+        }
 
         // Save HUD preferences
         function saveHudPrefs() {
@@ -1239,7 +1398,8 @@
                 darkMode: document.documentElement.getAttribute('data-theme') === 'dark',
                 waveform: !waveformSection.classList.contains('collapsed'),
                 noteDisplay: !noteDisplaySection.classList.contains('collapsed'),
-                midiInfo: !midiInfoSection.classList.contains('collapsed')
+                midiInfo: !midiInfoSection.classList.contains('collapsed'),
+                notation: !notationSection.classList.contains('collapsed')
             };
             localStorage.setItem('hud-preferences', JSON.stringify(prefs));
         }
@@ -1275,6 +1435,13 @@
         toggleMidiInfo.addEventListener('click', () => {
             midiInfoSection.classList.toggle('collapsed');
             toggleMidiInfo.classList.toggle('active');
+            saveHudPrefs();
+        });
+
+        // Notation Toggle
+        toggleNotation.addEventListener('click', () => {
+            notationSection.classList.toggle('collapsed');
+            toggleNotation.classList.toggle('active');
             saveHudPrefs();
         });
 
@@ -1314,6 +1481,10 @@
 
         showCyclesCheckbox.addEventListener('change', (e) => {
             showCycleMarkers = e.target.checked;
+        });
+
+        showHarmonicsCheckbox.addEventListener('change', (e) => {
+            showHarmonics = e.target.checked;
         });
 
         // Set canvas size
@@ -1427,6 +1598,48 @@
             return `${noteName}${octave}`;
         }
 
+        // Get musical interval name from semitone distance
+        function getIntervalName(semitones) {
+            const intervals = {
+                0: 'Unison',
+                1: 'Minor 2nd',
+                2: 'Major 2nd',
+                3: 'Minor 3rd',
+                4: 'Major 3rd',
+                5: 'Perfect 4th',
+                6: 'Tritone',
+                7: 'Perfect 5th',
+                8: 'Minor 6th',
+                9: 'Major 6th',
+                10: 'Minor 7th',
+                11: 'Major 7th',
+                12: 'Octave',
+                13: 'Minor 9th',
+                14: 'Major 9th',
+                15: 'Minor 10th',
+                16: 'Major 10th',
+                17: 'Perfect 11th',
+                18: 'Augmented 11th',
+                19: 'Perfect 12th',
+                20: 'Minor 13th',
+                21: 'Major 13th',
+                22: 'Minor 14th',
+                23: 'Major 14th',
+                24: '2 Octaves'
+            };
+            return intervals[semitones] || `${semitones} semitones`;
+        }
+
+        // Get spectrum color for a MIDI note (matches piano key colors)
+        function getNoteColor(midiNumber) {
+            const noteIndex = midiNumber % 12;
+            const noteNames = useFlats ? noteNamesFlats : noteNamesSharps;
+            const noteName = noteNames[noteIndex];
+            // Strip octave number if present and get base note
+            const baseNote = noteName.replace(/[0-9]/g, '');
+            return noteColors[baseNote] || '#888';
+        }
+
         function midiToFrequency(midiNumber) {
             // A4 = 440 Hz = MIDI note 69
             return Math.round(440 * Math.pow(2, (midiNumber - 69) / 12) * 100) / 100;
@@ -1464,11 +1677,12 @@
             // Sort notes by MIDI number (low to high)
             const sortedNotes = Array.from(activeNotes.keys()).sort((a, b) => a - b);
 
-            // Create HTML for all notes with color coding and Hz
-            const notesHTML = sortedNotes.map((note, index) => {
+            // Create HTML for all notes with spectrum colors matching piano keys
+            const notesHTML = sortedNotes.map((note) => {
                 const noteName = midiToNoteName(note);
                 const frequency = midiToFrequency(note);
-                return `<span class="note-item note-${index % 5}">
+                const color = getNoteColor(note);
+                return `<span class="note-item" style="color: ${color}">
                     <span class="note-name">${noteName}</span>
                     <span class="note-hz">${frequency} Hz</span>
                 </span>`;
@@ -1505,10 +1719,10 @@
             ctx.stroke();
             ctx.setLineDash([]);
 
-            // Get all active note data (frequency + velocity)
-            const noteDataArray = Array.from(activeNotes.values());
+            // Get all active notes with their MIDI numbers for color matching
+            const noteEntries = Array.from(activeNotes.entries()); // [[midiNote, {frequency, velocity}], ...]
 
-            if (noteDataArray.length === 0) {
+            if (noteEntries.length === 0) {
                 waveInfo.textContent = '';
                 // Continue animation even when no note
                 requestAnimationFrame(drawWave);
@@ -1525,11 +1739,11 @@
 
             // Update info display
             let infoText = `${cyclesShown} cycles`;
-            if (noteDataArray.length === 1) {
-                const vel = noteDataArray[0].velocity;
+            if (noteEntries.length === 1) {
+                const vel = noteEntries[0][1].velocity;
                 infoText += ` · vel ${Math.round(vel/127*100)}%`;
             } else {
-                infoText += ` · ${noteDataArray.length} notes`;
+                infoText += ` · ${noteEntries.length} notes`;
             }
             waveInfo.textContent = infoText;
 
@@ -1556,14 +1770,14 @@
                 }
             }
 
-            // Draw each active frequency - velocity affects amplitude & opacity
-            noteDataArray.forEach((noteData, index) => {
+            // Draw each active frequency with optional harmonics
+            noteEntries.forEach(([midiNote, noteData], index) => {
                 const freq = noteData.frequency;
                 const velocity = noteData.velocity;
 
                 // Velocity affects amplitude: soft = small waves, hard = big waves
                 const velocityScale = 0.3 + (velocity / 127) * 0.7; // Range: 0.3 to 1.0
-                const baseAmplitude = height * 0.35 / noteDataArray.length;
+                const baseAmplitude = height * 0.35 / noteEntries.length;
                 const amplitude = baseAmplitude * velocityScale;
 
                 // Velocity affects line width: soft = thin, hard = thick
@@ -1572,22 +1786,54 @@
                 // Velocity affects opacity: soft = transparent, hard = solid
                 const opacity = 0.4 + (velocity / 127) * 0.6; // Range: 0.4 to 1.0
 
-                const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6'];
-                const baseColor = colors[index % colors.length];
+                // Use spectrum color matching the piano key!
+                const baseColor = getNoteColor(midiNote);
 
-                // Apply opacity to color
+                const offsetY = centerY + (index - (noteEntries.length - 1) / 2) * amplitude * 0.5;
+
+                // Draw harmonics FIRST (behind the fundamental) if enabled
+                if (showHarmonics) {
+                    // Natural harmonic series: 2nd, 3rd, 4th, 5th, 6th harmonics
+                    // Amplitude decreases as 1/n, opacity fades out
+                    const numHarmonics = 6;
+
+                    for (let h = numHarmonics; h >= 2; h--) {
+                        const harmonicFreq = freq * h;
+                        const harmonicAmplitude = amplitude / h; // Natural 1/n falloff
+                        const harmonicOpacity = opacity * (0.5 / h); // Fade out higher harmonics
+                        const harmonicLineWidth = Math.max(0.5, lineWidth / (h * 0.7));
+
+                        ctx.strokeStyle = baseColor;
+                        ctx.globalAlpha = harmonicOpacity;
+                        ctx.lineWidth = harmonicLineWidth;
+                        ctx.beginPath();
+
+                        for (let x = 0; x <= width; x += 2) { // Step by 2 for performance
+                            const cycles = (x / width) * cyclesShown;
+                            const phase = cycles * Math.PI * 2 * h; // Harmonic multiplier
+                            const animatedPhase = phase - (time * harmonicFreq / 100);
+                            const y = offsetY + Math.sin(animatedPhase) * harmonicAmplitude;
+
+                            if (x === 0) {
+                                ctx.moveTo(x, y);
+                            } else {
+                                ctx.lineTo(x, y);
+                            }
+                        }
+                        ctx.stroke();
+                    }
+                }
+
+                // Draw fundamental frequency ON TOP
                 ctx.strokeStyle = baseColor;
                 ctx.globalAlpha = opacity;
                 ctx.lineWidth = lineWidth;
                 ctx.beginPath();
 
                 for (let x = 0; x <= width; x += 1) {
-                    // Properly calculate phase based on actual frequency
                     const cycles = (x / width) * cyclesShown;
                     const phase = cycles * Math.PI * 2;
                     const animatedPhase = phase - (time * freq / 100);
-
-                    const offsetY = centerY + (index - (noteDataArray.length - 1) / 2) * amplitude * 0.5;
                     const y = offsetY + Math.sin(animatedPhase) * amplitude;
 
                     if (x === 0) {
@@ -1700,6 +1946,319 @@
             updateStatus('Web MIDI API is not supported in this browser. Try Chrome, Edge, or Opera.', 'error');
             connectButton.disabled = true;
         }
+
+        // ===== LIVE STAFF NOTATION WITH ABCJS =====
+
+        const notationContainer = document.getElementById('notationContainer');
+        const keySignatureSelect = document.getElementById('keySignature');
+        let notationDebounceTimer = null;
+        const NOTATION_DEBOUNCE_MS = 150; // Slight delay to avoid flicker
+        let selectedKeySignature = 'chromatic'; // Default to chromatic (use sharps/flats pref)
+
+        // Key signature definitions: which notes are sharp or flat in each key
+        // Values are MIDI note indices (0-11) that are altered in that key
+        const keySignatures = {
+            // Major keys with sharps (F C G D A E B)
+            'C':  { sharps: [], flats: [] },
+            'G':  { sharps: [6], flats: [] },           // F#
+            'D':  { sharps: [6, 1], flats: [] },        // F#, C#
+            'A':  { sharps: [6, 1, 8], flats: [] },     // F#, C#, G#
+            'E':  { sharps: [6, 1, 8, 3], flats: [] },  // F#, C#, G#, D#
+            'B':  { sharps: [6, 1, 8, 3, 10], flats: [] }, // F#, C#, G#, D#, A#
+            'F#': { sharps: [6, 1, 8, 3, 10, 5], flats: [] }, // F#, C#, G#, D#, A#, E#
+            // Major keys with flats (B E A D G C F)
+            'F':  { sharps: [], flats: [10] },          // Bb
+            'Bb': { sharps: [], flats: [10, 3] },       // Bb, Eb
+            'Eb': { sharps: [], flats: [10, 3, 8] },    // Bb, Eb, Ab
+            'Ab': { sharps: [], flats: [10, 3, 8, 1] }, // Bb, Eb, Ab, Db
+            'Db': { sharps: [], flats: [10, 3, 8, 1, 6] }, // Bb, Eb, Ab, Db, Gb
+            'Gb': { sharps: [], flats: [10, 3, 8, 1, 6, 11] }, // Bb, Eb, Ab, Db, Gb, Cb
+            // Minor keys (relative minors use same accidentals)
+            'Am':  { sharps: [], flats: [] },
+            'Em':  { sharps: [6], flats: [] },
+            'Bm':  { sharps: [6, 1], flats: [] },
+            'F#m': { sharps: [6, 1, 8], flats: [] },
+            'C#m': { sharps: [6, 1, 8, 3], flats: [] },
+            'G#m': { sharps: [6, 1, 8, 3, 10], flats: [] },
+            'D#m': { sharps: [6, 1, 8, 3, 10, 5], flats: [] },
+            'Dm':  { sharps: [], flats: [10] },
+            'Gm':  { sharps: [], flats: [10, 3] },
+            'Cm':  { sharps: [], flats: [10, 3, 8] },
+            'Fm':  { sharps: [], flats: [10, 3, 8, 1] },
+            'Bbm': { sharps: [], flats: [10, 3, 8, 1, 6] },
+            'Ebm': { sharps: [], flats: [10, 3, 8, 1, 6, 11] }
+        };
+
+        // Handle key signature changes
+        keySignatureSelect.addEventListener('change', (e) => {
+            selectedKeySignature = e.target.value;
+            localStorage.setItem('key-signature-preference', selectedKeySignature);
+            updateNotation(); // Re-render with new key
+        });
+
+        // Load saved key signature preference
+        const savedKeySig = localStorage.getItem('key-signature-preference');
+        if (savedKeySig) {
+            selectedKeySignature = savedKeySig;
+            keySignatureSelect.value = savedKeySig;
+        }
+
+        // Convert MIDI note number to ABC notation
+        // ABC uses: C,D,E,F,G,A,B = octave below middle C (C3)
+        //           C D E F G A B = middle C octave (C4)
+        //           c d e f g a b = octave above middle C (C5)
+        //           c' d' e' = C6, etc.
+        //           C, D, E, = C2, etc.
+        function midiToABC(midiNote, keySignature = 'chromatic') {
+            const noteIndex = midiNote % 12;
+            const octave = Math.floor(midiNote / 12) - 1; // MIDI octave
+
+            let noteName;
+
+            if (keySignature === 'chromatic') {
+                // Use the global sharps/flats preference
+                const abcNotesSharps = ['C', '^C', 'D', '^D', 'E', 'F', '^F', 'G', '^G', 'A', '^A', 'B'];
+                const abcNotesFlats = ['C', '_D', 'D', '_E', 'E', 'F', '_G', 'G', '_A', 'A', '_B', 'B'];
+                const abcNotes = useFlats ? abcNotesFlats : abcNotesSharps;
+                noteName = abcNotes[noteIndex];
+            } else {
+                // Use key signature context
+                const keySig = keySignatures[keySignature];
+                const isFlatKey = keySig.flats.length > 0;
+                const isSharpKey = keySig.sharps.length > 0;
+
+                // MIDI indices: C=0, C#=1, D=2, D#=3, E=4, F=5, F#=6, G=7, G#=8, A=9, A#=10, B=11
+                const isBlackKey = [false, true, false, true, false, false, true, false, true, false, true, false];
+                const whiteKeyNames = ['C', '', 'D', '', 'E', 'F', '', 'G', '', 'A', '', 'B'];
+
+                // For flat keys: the KEY SIGNATURE alters these WHITE keys
+                // Bb key sig means B->Bb, so MIDI 11 (B) becomes Bb, and MIDI 10 (A#/Bb) is "in key"
+                // We need to map: which white key gets flatted?
+                // Bb = B is flatted (white key index 11 -> plays as 10)
+                // Eb = E is flatted (white key index 4 -> plays as 3)
+                // Ab = A is flatted (white key index 9 -> plays as 8)
+                // Db = D is flatted (white key index 2 -> plays as 1)
+                // Gb = G is flatted (white key index 7 -> plays as 6)
+                // Cb = C is flatted (white key index 0 -> plays as 11)
+
+                // The flats array contains the BLACK KEY midi indices that are "in the key"
+                // We need to check: if playing a WHITE key that would normally be flatted, show natural
+                const flatToNatural = { 10: 11, 3: 4, 8: 9, 1: 2, 6: 7, 11: 0 }; // black key -> its natural white key
+                const naturalToFlat = { 11: 10, 4: 3, 9: 8, 2: 1, 7: 6, 0: 11 }; // white key -> its flatted version
+
+                // For sharp keys: F#, C#, G#, D#, A#, E# - the sharp is on the BLACK key
+                // If playing the WHITE key (F, C, G, D, A, E) when key sig has the sharp, need natural
+                const sharpToNatural = { 6: 5, 1: 0, 8: 7, 3: 2, 10: 9, 5: 4 }; // F#->F, C#->C, etc.
+                const naturalToSharp = { 5: 6, 0: 1, 7: 8, 2: 3, 9: 10, 4: 5 }; // F->F#, C->C#, etc.
+
+                if (!isBlackKey[noteIndex]) {
+                    // Playing a WHITE key
+                    const whiteKeyName = whiteKeyNames[noteIndex];
+
+                    // Check if this white key's sharp version is in the key signature
+                    const sharpVersion = naturalToSharp[noteIndex];
+                    if (sharpVersion !== undefined && keySig.sharps.includes(sharpVersion)) {
+                        // The key signature sharps this note, but we're playing the natural!
+                        // Need a natural sign
+                        noteName = '=' + whiteKeyName;
+                    } else {
+                        // Check flat keys too
+                        const flatVersion = naturalToFlat[noteIndex];
+                        if (flatVersion !== undefined && keySig.flats.includes(flatVersion)) {
+                            // The key signature flats this note, but we're playing the natural!
+                            noteName = '=' + whiteKeyName;
+                        } else {
+                            // This white key is not affected by the key signature
+                            noteName = whiteKeyName;
+                        }
+                    }
+                } else {
+                    // Playing a BLACK key
+                    if (isFlatKey) {
+                        // Use flat spelling
+                        const flatNames = { 1: 'D', 3: 'E', 6: 'G', 8: 'A', 10: 'B' };
+                        const baseName = flatNames[noteIndex];
+                        if (keySig.flats.includes(noteIndex)) {
+                            // This flat is in the key sig - no accidental needed
+                            noteName = baseName;
+                        } else {
+                            // Flat not in key sig - need explicit flat
+                            noteName = '_' + baseName;
+                        }
+                    } else {
+                        // Use sharp spelling
+                        const sharpNames = { 1: 'C', 3: 'D', 6: 'F', 8: 'G', 10: 'A' };
+                        const baseName = sharpNames[noteIndex];
+                        if (keySig.sharps.includes(noteIndex)) {
+                            // This sharp is in the key sig - no accidental needed
+                            noteName = baseName;
+                        } else {
+                            // Sharp not in key sig - need explicit sharp
+                            noteName = '^' + baseName;
+                        }
+                    }
+                }
+            }
+
+            // Handle octave markers in ABC notation
+            // Octave 4 (middle C = MIDI 60) = uppercase C D E F G A B
+            // Octave 5 = lowercase c d e f g a b
+            // Octave 6+ = lowercase with apostrophes c' d'' etc.
+            // Octave 3 = uppercase with commas C, D, etc.
+            // Octave 2 = C,, D,, etc.
+
+            if (octave >= 5) {
+                // Lowercase for octave 5+
+                noteName = noteName.toLowerCase();
+                const apostrophes = octave - 5;
+                noteName += "'".repeat(apostrophes);
+            } else if (octave === 4) {
+                // Uppercase, no modifier (middle C octave)
+                // noteName stays as is
+            } else {
+                // Octave 3 and below - uppercase with commas
+                const commas = 4 - octave;
+                noteName += ",".repeat(commas);
+            }
+
+            return noteName;
+        }
+
+        // Determine best clef(s) based on note range
+        function detectClef(midiNotes) {
+            if (midiNotes.length === 0) return 'treble';
+
+            const lowest = Math.min(...midiNotes);
+            const highest = Math.max(...midiNotes);
+            const middle = (lowest + highest) / 2;
+
+            // Middle C = MIDI 60
+            // If all notes are high (above G3/MIDI 55), use treble
+            // If all notes are low (below D4/MIDI 62), use bass
+            // If spanning both, we need grand staff
+
+            if (lowest >= 55) {
+                return 'treble';
+            } else if (highest <= 62) {
+                return 'bass';
+            } else {
+                return 'grand'; // Need both clefs
+            }
+        }
+
+        // Generate empty staff with just clef and key signature
+        function generateEmptyStaff() {
+            const abcKey = getABCKeyString(selectedKeySignature);
+            let abc = 'X:1\n';
+            abc += 'L:1\n';
+            abc += 'M:none\n';
+            abc += `K:${abcKey} clef=treble\n`;
+            abc += 'x |'; // Invisible rest - shows staff without notes
+            return abc;
+        }
+
+        // Get the ABC key string for the selected key signature
+        function getABCKeyString(keySignature) {
+            if (keySignature === 'chromatic') {
+                return 'C'; // C major = no key signature, we add accidentals manually
+            }
+            // Convert key name to ABC format
+            // ABC uses: C, G, D, A, E, B, F#, Cb for major
+            // and Am, Em, Bm, etc. for minor
+            return keySignature;
+        }
+
+        // Generate ABC notation string for current notes
+        function generateABCNotation(midiNotes) {
+            if (midiNotes.length === 0) return null;
+
+            const sortedNotes = [...midiNotes].sort((a, b) => a - b);
+            const clefType = detectClef(sortedNotes);
+            const abcKey = getABCKeyString(selectedKeySignature);
+
+            if (clefType === 'grand') {
+                // Split notes between bass and treble at middle C (60)
+                const bassNotes = sortedNotes.filter(n => n < 60);
+                const trebleNotes = sortedNotes.filter(n => n >= 60);
+
+                // Build grand staff ABC
+                let abc = 'X:1\n';
+                abc += 'L:1\n'; // Whole notes
+                abc += 'M:none\n'; // No time signature
+                abc += '%%staves {1 2}\n';
+                abc += 'V:1 clef=treble\n';
+                abc += 'V:2 clef=bass\n';
+                abc += `K:${abcKey}\n`;
+
+                // Treble staff
+                abc += '[V:1] ';
+                if (trebleNotes.length > 0) {
+                    abc += '[' + trebleNotes.map(n => midiToABC(n, selectedKeySignature)).join('') + ']';
+                } else {
+                    abc += 'z'; // Rest if no treble notes
+                }
+                abc += ' |\n';
+
+                // Bass staff
+                abc += '[V:2] ';
+                if (bassNotes.length > 0) {
+                    abc += '[' + bassNotes.map(n => midiToABC(n, selectedKeySignature)).join('') + ']';
+                } else {
+                    abc += 'z'; // Rest if no bass notes
+                }
+                abc += ' |';
+
+                return abc;
+            } else {
+                // Single staff
+                let abc = 'X:1\n';
+                abc += 'L:1\n'; // Whole notes
+                abc += 'M:none\n'; // No time signature
+                abc += `K:${abcKey} clef=${clefType}\n`;
+
+                // All notes as a chord
+                abc += '[' + sortedNotes.map(n => midiToABC(n, selectedKeySignature)).join('') + '] |';
+
+                return abc;
+            }
+        }
+
+        // Render notation with debouncing
+        function updateNotation() {
+            clearTimeout(notationDebounceTimer);
+
+            notationDebounceTimer = setTimeout(() => {
+                const midiNotes = Array.from(activeNotes.keys());
+
+                // Always render staff - show rest when no notes
+                const abcString = midiNotes.length === 0
+                    ? generateEmptyStaff()
+                    : generateABCNotation(midiNotes);
+
+                if (abcString && window.ABCJS) {
+                    notationContainer.innerHTML = ''; // Clear placeholder
+                    try {
+                        ABCJS.renderAbc(notationContainer, abcString, {
+                            responsive: 'resize',
+                            add_classes: true,
+                            staffwidth: 200,
+                            paddingtop: 0,
+                            paddingbottom: 0,
+                            paddingleft: 0,
+                            paddingright: 0
+                        });
+                    } catch (e) {
+                        console.error('ABC notation error:', e);
+                        notationContainer.innerHTML = '<span class="notation-placeholder">Notation error</span>';
+                    }
+                }
+            }, NOTATION_DEBOUNCE_MS);
+        }
+
+        // Render initial empty staff on page load
+        updateNotation();
+
+        // ===== END LIVE STAFF NOTATION =====
     </script>
 </body>
 </html>
