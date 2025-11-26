@@ -3,13 +3,226 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Simple MIDI visualizer - connect your keyboard and see notes, frequencies, and intervals in real-time">
-    <title>MIDI Visualizer - Harmonic Systems Studio</title>
+    <meta name="description" content="Live chord detection and MIDI visualizer - connect your keyboard, play chords, and learn music theory through exploration. Built with Tonal.js.">
+    <title>Live Chord Analyzer - Harmonic Systems Studio</title>
     <link rel="stylesheet" href="../styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=Inter:wght@400;500;600&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tonaljs/tonal/browser/tonal.min.js"></script>
     <style>
+        /* Dark mode variables */
+        :root {
+            --hud-bg: #fafafa;
+            --hud-bg-alt: #ffffff;
+            --hud-border: #ddd;
+            --hud-text: #2c3e50;
+            --hud-text-secondary: #7f8c8d;
+            --hud-accent: #5d6d7e;
+        }
+
+        [data-theme="dark"] {
+            --hud-bg: #1a1a2e;
+            --hud-bg-alt: #16213e;
+            --hud-border: #2a2a4a;
+            --hud-text: #eee;
+            --hud-text-secondary: #aaa;
+            --hud-accent: #7f8fa6;
+        }
+
+        [data-theme="dark"] body {
+            background: #0f0f1a;
+            color: var(--hud-text);
+        }
+
+        [data-theme="dark"] .site-nav {
+            background: #16213e;
+            border-bottom-color: var(--hud-border);
+        }
+
+        [data-theme="dark"] .container {
+            color: var(--hud-text);
+        }
+
+        [data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3 {
+            color: var(--hud-text);
+        }
+
+        [data-theme="dark"] .subtitle {
+            color: var(--hud-text-secondary);
+        }
+
+        [data-theme="dark"] a {
+            color: #64b5f6;
+        }
+
+        /* HUD Controls Bar */
+        .hud-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+            padding: 8px 12px;
+            background: var(--hud-bg);
+            border: 1px solid var(--hud-border);
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+
+        .hud-controls label {
+            font-size: 0.85em;
+            color: var(--hud-text-secondary);
+            font-weight: 500;
+        }
+
+        .hud-toggle {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: var(--hud-bg-alt);
+            border: 1px solid var(--hud-border);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            color: var(--hud-text);
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+
+        .hud-toggle:hover {
+            border-color: var(--hud-accent);
+        }
+
+        .hud-toggle.active {
+            background: var(--hud-accent);
+            color: white;
+            border-color: var(--hud-accent);
+        }
+
+        .hud-toggle input {
+            display: none;
+        }
+
+        .hud-divider {
+            width: 1px;
+            height: 24px;
+            background: var(--hud-border);
+            margin: 0 8px;
+        }
+
+        /* Collapsible sections */
+        .hud-section {
+            transition: all 0.2s ease;
+            overflow: hidden;
+        }
+
+        .hud-section.collapsed {
+            display: none;
+        }
+
+        /* Dark mode for components */
+        [data-theme="dark"] .visualizer {
+            background: var(--hud-bg);
+            border-color: var(--hud-border);
+        }
+
+        [data-theme="dark"] .piano-section {
+            background: var(--hud-bg);
+            border-color: var(--hud-border);
+        }
+
+        [data-theme="dark"] .chord-panel {
+            background: var(--hud-bg-alt);
+            border-color: var(--hud-border);
+        }
+
+        [data-theme="dark"] .chord-name {
+            color: var(--hud-text);
+        }
+
+        [data-theme="dark"] .chord-name.detecting {
+            color: var(--hud-text-secondary);
+        }
+
+        [data-theme="dark"] .info-card {
+            background: var(--hud-bg-alt);
+            border-color: var(--hud-border);
+        }
+
+        [data-theme="dark"] .info-card h4 {
+            color: var(--hud-text);
+        }
+
+        [data-theme="dark"] .info-card p {
+            color: var(--hud-text-secondary);
+        }
+
+        [data-theme="dark"] .status.waiting {
+            background: #3d3d00;
+            color: #ffd700;
+        }
+
+        [data-theme="dark"] .status.connected {
+            background: #1a3d1a;
+            color: #90EE90;
+        }
+
+        [data-theme="dark"] .status.error {
+            background: #3d1a1a;
+            color: #ff6b6b;
+        }
+
+        [data-theme="dark"] .wave-canvas {
+            background: var(--hud-bg-alt);
+            border-color: var(--hud-border);
+        }
+
+        [data-theme="dark"] .note-display {
+            color: var(--hud-text);
+        }
+
+        [data-theme="dark"] .frequency-display,
+        [data-theme="dark"] .midi-number {
+            color: var(--hud-text-secondary);
+        }
+
+        [data-theme="dark"] .keyboard-range {
+            color: var(--hud-text-secondary);
+        }
+
+        [data-theme="dark"] .connect-button {
+            background: #4a5568;
+        }
+
+        [data-theme="dark"] .connect-button:hover {
+            background: #5a6578;
+        }
+
+        [data-theme="dark"] select {
+            background: var(--hud-bg-alt);
+            color: var(--hud-text);
+            border-color: var(--hud-border);
+        }
+
+        [data-theme="dark"] .piano-key.white-key {
+            fill: #e8e8e8;
+            stroke: #555;
+        }
+
+        [data-theme="dark"] .piano-key.black-key {
+            fill: #2a2a2a;
+            stroke: #333;
+        }
+
+        [data-theme="dark"] .key-label {
+            fill: #666;
+        }
+
+        [data-theme="dark"] .key-label.black-key-label {
+            fill: #999;
+        }
+
         .visualizer {
             background: #fafafa;
             border: 2px solid var(--border);
@@ -68,33 +281,35 @@
 
         .note-display {
             font-family: 'Fraunces', Georgia, serif;
-            font-size: 6em;
+            font-size: 3em;
             font-weight: 700;
             color: var(--primary);
-            margin-bottom: 24px;
-            min-height: 120px;
+            margin-bottom: 8px;
+            /* Fixed height - no more jumping */
+            height: 70px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-wrap: wrap;
-            gap: 16px;
-            transition: all 0.2s ease;
+            gap: 10px;
+            /* Only transition color, not size */
+            transition: color 0.15s ease;
+            overflow: hidden;
         }
 
-        /* Scale down when many notes */
+        /* Scale down when many notes - smaller increments */
         .note-display.many-notes {
-            font-size: 4em;
-            gap: 12px;
+            font-size: 2.4em;
+            gap: 8px;
         }
 
         .note-display.lots-of-notes {
-            font-size: 3em;
-            gap: 8px;
+            font-size: 1.8em;
+            gap: 6px;
         }
 
         .note-display.active {
             color: #e74c3c;
-            transform: scale(1.05);
         }
 
         .note-item {
@@ -123,33 +338,21 @@
 
         .frequency-display {
             font-family: 'Inter', sans-serif;
-            font-size: 2em;
+            font-size: 0.9em;
             color: var(--secondary);
-            margin-bottom: 16px;
-            text-align: center;
-        }
-
-        .frequency-display.many-notes {
-            font-size: 1.5em;
         }
 
         .midi-number {
             font-family: 'Inter', monospace;
-            font-size: 1.2em;
+            font-size: 0.85em;
             color: var(--accent);
-            margin-bottom: 32px;
-            text-align: center;
-            word-break: break-word;
-        }
-
-        .midi-number.many-notes {
-            font-size: 1em;
         }
 
         .status {
-            padding: 16px;
+            padding: 10px 16px;
             border-radius: 4px;
-            margin: 24px 0;
+            font-size: 0.9em;
+            margin: 12px 0;
             font-weight: 500;
         }
 
@@ -218,6 +421,222 @@
             color: var(--secondary);
             margin: 0;
         }
+
+        /* Piano Keyboard Styles */
+        .piano-section {
+            margin: 24px 0;
+            padding: 20px;
+            background: #fafafa;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+        }
+
+        .piano-keyboard {
+            width: 100%;
+            height: 120px;
+            margin: 8px 0;
+        }
+
+        .piano-key {
+            /* Smooth ADSR-like transitions */
+            transition: fill 0.08s ease-out, opacity 0.15s ease-out;
+            cursor: pointer;
+        }
+
+        .piano-key:hover {
+            filter: brightness(0.95);
+        }
+
+        .piano-key.white-key {
+            fill: #fefefe;
+            stroke: var(--primary);
+            stroke-width: 1.5;
+        }
+
+        .piano-key.black-key {
+            fill: var(--primary);
+            stroke: var(--primary);
+            stroke-width: 1;
+        }
+
+        .piano-key.black-key:hover {
+            filter: brightness(1.3);
+        }
+
+        /* Active states with smooth attack */
+        .piano-key.white-key.active {
+            transition: fill 0.02s ease-out; /* Fast attack */
+        }
+
+        .piano-key.black-key.active {
+            transition: fill 0.02s ease-out; /* Fast attack */
+        }
+
+        /* Releasing state for smooth decay */
+        .piano-key.releasing {
+            transition: fill 0.4s ease-out, opacity 0.4s ease-out; /* Slow release */
+        }
+
+        /* Spectrum colors for active notes - white keys */
+        .piano-key.active.note-C { fill: #E74C3C !important; }
+        .piano-key.active.note-D { fill: #E67E22 !important; }
+        .piano-key.active.note-E { fill: #F1C40F !important; }
+        .piano-key.active.note-F { fill: #27AE60 !important; }
+        .piano-key.active.note-G { fill: #3498DB !important; }
+        .piano-key.active.note-A { fill: #8E44AD !important; }
+        .piano-key.active.note-B { fill: #9B59B6 !important; }
+
+        /* Spectrum colors for active notes - black keys (flats) */
+        .piano-key.active.note-Db { fill: #E55A30 !important; }
+        .piano-key.active.note-Eb { fill: #F4A420 !important; }
+        .piano-key.active.note-Gb { fill: #2D9A8C !important; }
+        .piano-key.active.note-Ab { fill: #6B6EC0 !important; }
+        .piano-key.active.note-Bb { fill: #954FA1 !important; }
+
+        /* Spectrum colors for active notes - black keys (sharps) */
+        .piano-key.active.note-Cs { fill: #E55A30 !important; }
+        .piano-key.active.note-Ds { fill: #F4A420 !important; }
+        .piano-key.active.note-Fs { fill: #2D9A8C !important; }
+        .piano-key.active.note-Gs { fill: #6B6EC0 !important; }
+        .piano-key.active.note-As { fill: #954FA1 !important; }
+
+        .key-label {
+            font-size: 11px;
+            fill: #888;
+            font-weight: 500;
+            pointer-events: none;
+            font-family: 'Inter', sans-serif;
+            transition: fill 0.15s ease-out;
+        }
+
+        .key-label.black-key-label {
+            fill: rgba(255,255,255,0.7);
+        }
+
+        .key-label.active {
+            fill: #1a1a1a;
+            font-weight: 600;
+        }
+
+        .key-label.black-key-label.active {
+            fill: white;
+        }
+
+        /* Chord Detection Panel - COMPACT LAYOUT */
+        .chord-panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-top: 8px;
+            /* Fixed height to prevent layout shifts */
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chord-name {
+            font-family: 'Fraunces', Georgia, serif;
+            font-size: 2em;
+            font-weight: 700;
+            color: var(--primary);
+            /* Fixed height container */
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            /* Smooth color transition only, not size */
+            transition: color 0.15s ease;
+        }
+
+        .chord-name.detecting {
+            color: var(--secondary);
+            font-size: 1.2em;
+        }
+
+        .chord-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 4px;
+            font-size: 0.9em;
+            color: var(--secondary);
+            /* Fixed height for details row */
+            min-height: 28px;
+            align-items: center;
+            /* Fade in/out instead of display toggle */
+            opacity: 1;
+            transition: opacity 0.15s ease;
+        }
+
+        .chord-details.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .chord-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chord-detail-label {
+            font-weight: 500;
+            color: var(--primary);
+        }
+
+        .note-badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .note-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 500;
+            color: white;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+
+        .keyboard-range {
+            font-size: 0.8em;
+            color: var(--secondary);
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        /* Stable visualizer container */
+        .visualizer {
+            min-height: 200px;
+        }
+
+        /* Stable piano section */
+        .piano-section {
+            min-height: 240px;
+            padding: 16px;
+        }
+
+        /* Stable info cards */
+        .info-grid .info-card {
+            min-height: 50px;
+            padding: 10px !important;
+        }
+
+        /* Compact frequency/midi display */
+        .freq-midi-row {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin: 8px 0;
+            font-size: 0.95em;
+            color: var(--hud-text-secondary);
+        }
+
+        .freq-midi-row span {
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -235,59 +654,110 @@
 
     <div class="container" style="padding-top: 24px; padding-bottom: 24px;">
         <header style="padding-top: 0; margin-bottom: 16px; padding-bottom: 16px;">
-            <h1 style="margin-bottom: 8px;">MIDI Visualizer</h1>
-            <p class="subtitle" style="margin-bottom: 16px;">Connect your keyboard and see notes, frequencies, and intervals in real-time</p>
+            <h1 style="margin-bottom: 8px;">Live Chord Analyzer</h1>
+            <p class="subtitle" style="margin-bottom: 16px;">Play first, understand second. Connect your keyboard and explore music theory through discovery.</p>
         </header>
 
-        <section>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <div style="flex: 1;">
-                    <label style="margin-right: 8px; color: var(--secondary); font-size: 0.9em;">Note Display:</label>
-                    <select id="notePreference" style="padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 0.9em;">
-                        <option value="sharps">Use Sharps (C#, D#, F#...)</option>
-                        <option value="flats">Use Flats (Db, Eb, Gb...)</option>
-                    </select>
-                </div>
-            </div>
+        <!-- HUD Controls Bar -->
+        <div class="hud-controls">
+            <label>Display:</label>
+            <label class="hud-toggle" id="toggleDarkMode">
+                <span>Dark Mode</span>
+            </label>
+            <div class="hud-divider"></div>
+            <label>Show:</label>
+            <label class="hud-toggle active" id="toggleWaveform">
+                <span>Waveform</span>
+            </label>
+            <label class="hud-toggle active" id="toggleNoteDisplay">
+                <span>Notes</span>
+            </label>
+            <label class="hud-toggle active" id="toggleMidiInfo">
+                <span>MIDI Info</span>
+            </label>
+        </div>
 
+        <section>
             <div id="status" class="status waiting" style="margin: 12px 0; padding: 12px;">
                 Click "Connect MIDI Device" to get started
             </div>
 
             <button id="connectButton" class="connect-button" style="margin-bottom: 16px;">Connect MIDI Device</button>
 
-            <div class="visualizer" style="padding: 24px 16px; margin: 16px 0;">
-                <div id="noteDisplay" class="note-display" style="margin-bottom: 16px; min-height: 100px;">
-                    Play a note...
+            <div class="visualizer" style="padding: 16px; margin: 12px 0;">
+                <!-- Note Display Section (collapsible) -->
+                <div id="noteDisplaySection" class="hud-section">
+                    <div id="noteDisplay" class="note-display" style="margin-bottom: 8px;">
+                        Play a note...
+                    </div>
                 </div>
-                <canvas id="waveCanvas" class="wave-canvas" style="margin: 16px 0; height: 120px;"></canvas>
-                <div class="wave-controls">
-                    <button id="freezeButton" class="freeze-button">Freeze Animation</button>
-                    <label>
-                        <input type="checkbox" id="showCyclesCheckbox"> Show Cycle Markers
-                    </label>
-                </div>
-                <div id="waveInfo" class="wave-info"></div>
-                <div id="frequencyDisplay" class="frequency-display" style="margin-bottom: 8px;">
-                    —
-                </div>
-                <div id="midiDisplay" class="midi-number" style="margin-bottom: 16px;">
-                    —
+
+                <!-- Waveform Section (collapsible) -->
+                <div id="waveformSection" class="hud-section">
+                    <canvas id="waveCanvas" class="wave-canvas" style="margin: 8px 0; height: 120px;"></canvas>
+                    <div class="wave-controls" style="margin-bottom: 4px;">
+                        <button id="freezeButton" class="freeze-button">Freeze</button>
+                        <label>
+                            <input type="checkbox" id="showCyclesCheckbox"> Cycles
+                        </label>
+                        <label style="margin-left: 12px;">
+                            Zoom:
+                            <input type="range" id="waveZoom" min="0.5" max="3" step="0.25" value="1.5" style="width: 80px; vertical-align: middle;">
+                        </label>
+                        <span id="waveInfo" class="wave-info" style="margin-left: 12px;"></span>
+                    </div>
+                    <!-- Combined Hz + MIDI row -->
+                    <div class="freq-midi-row">
+                        <span id="frequencyDisplay">—</span>
+                        <span id="midiDisplay">—</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="info-grid" style="margin-top: 16px; gap: 16px;">
-                <div class="info-card" style="padding: 16px;">
-                    <h4 style="margin-bottom: 6px; font-size: 0.95em;">Last Note</h4>
-                    <p id="lastNote" style="margin: 0; font-size: 0.95em;">None</p>
+            <!-- MIDI Info Section (collapsible) -->
+            <div id="midiInfoSection" class="hud-section">
+                <div class="info-grid" style="margin-top: 8px; gap: 10px;">
+                    <div class="info-card">
+                        <h4 style="margin-bottom: 4px; font-size: 0.85em;">Last Note</h4>
+                        <p id="lastNote" style="margin: 0; font-size: 0.9em;">None</p>
+                    </div>
+                    <div class="info-card">
+                        <h4 style="margin-bottom: 4px; font-size: 0.85em;">Velocity</h4>
+                        <p id="velocity" style="margin: 0; font-size: 0.9em;">—</p>
+                    </div>
+                    <div class="info-card">
+                        <h4 style="margin-bottom: 4px; font-size: 0.85em;">Active</h4>
+                        <p id="activeNotes" style="margin: 0; font-size: 0.9em;">0</p>
+                    </div>
                 </div>
-                <div class="info-card" style="padding: 16px;">
-                    <h4 style="margin-bottom: 6px; font-size: 0.95em;">Velocity</h4>
-                    <p id="velocity" style="margin: 0; font-size: 0.95em;">—</p>
+            </div>
+
+            <!-- Piano Keyboard & Chord Detection -->
+            <div class="piano-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h3 style="margin: 0; font-size: 1.1em;">Live Chord Detection</h3>
+                    <select id="notePreference" style="padding: 4px 10px; border: 1px solid var(--hud-border); border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 0.85em; background: var(--hud-bg-alt); color: var(--hud-text);">
+                        <option value="sharps">Sharps (C#, D#...)</option>
+                        <option value="flats">Flats (Db, Eb...)</option>
+                    </select>
                 </div>
-                <div class="info-card" style="padding: 16px;">
-                    <h4 style="margin-bottom: 6px; font-size: 0.95em;">Active Notes</h4>
-                    <p id="activeNotes" style="margin: 0; font-size: 0.95em;">0</p>
+                <svg class="piano-keyboard" id="piano" viewBox="0 0 840 160" preserveAspectRatio="xMidYMid meet">
+                    <!-- Piano keys generated dynamically -->
+                </svg>
+                <div class="keyboard-range" id="keyboardRange">Showing C3 - B5 (adapts to your playing)</div>
+
+                <div class="chord-panel">
+                    <div class="chord-name detecting" id="chordName">Play some notes...</div>
+                    <div class="chord-details hidden" id="chordDetails">
+                        <div class="chord-detail-item">
+                            <span class="chord-detail-label">Notes:</span>
+                            <div class="note-badges" id="chordNotes"></div>
+                        </div>
+                        <div class="chord-detail-item">
+                            <span class="chord-detail-label">Intervals:</span>
+                            <span id="chordIntervals"></span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -296,19 +766,22 @@
 
         <section>
             <h2>About This Tool</h2>
-            <p>This is a simple MIDI visualizer that helps you see the relationship between what you play and the underlying physics of sound.</p>
+            <p>This tool combines real-time MIDI visualization with <strong>live chord detection</strong>. Play first, understand second - an experiential approach to music theory.</p>
 
             <p><strong>What you'll see:</strong></p>
             <ul>
-                <li>The note name (e.g., "A4", "C#3")</li>
-                <li>The fundamental frequency in Hertz</li>
-                <li>The MIDI note number (0-127)</li>
-                <li>Velocity (how hard you hit the key)</li>
+                <li>A piano keyboard that lights up as you play (spectrum colors by note)</li>
+                <li>Real-time chord detection - the tool identifies what chord you're playing</li>
+                <li>Intervals and note structure for detected chords</li>
+                <li>Waveform visualization showing frequency relationships</li>
+                <li>Auto-adapting keyboard range (expands to match your playing)</li>
             </ul>
 
-            <p><strong>Why this matters:</strong> Music is physics. Every note you play has a measurable frequency. Understanding this connection helps demystify music theory and shows how different tuning systems work.</p>
+            <p><strong>Visual feedback:</strong> Keys respond with smooth, natural transitions - fast attack when you press, gentle release when you let go. No jarring flashes or game-like effects.</p>
 
-            <p><strong>Privacy:</strong> All processing happens in your browser. Nothing is recorded or sent anywhere. Your MIDI data never leaves your device.</p>
+            <p><strong>Why this matters:</strong> Learning music theory through exploration and discovery, rather than rote memorization, creates deeper understanding. Play what feels right, and let the tool help you understand what you played.</p>
+
+            <p><strong>Privacy:</strong> All processing happens in your browser using <a href="https://github.com/tonaljs/tonal">Tonal.js</a>. Nothing is recorded or sent anywhere.</p>
         </section>
 
         <hr class="divider">
@@ -346,7 +819,7 @@
         const showCyclesCheckbox = document.getElementById('showCyclesCheckbox');
 
         let midiAccess = null;
-        let activeNotes = new Map(); // Changed to Map to store note -> frequency
+        let activeNotes = new Map(); // Map of note -> { frequency, velocity }
         let currentFrequency = 0;
         let animationId = null;
         let useFlats = false;
@@ -354,9 +827,477 @@
         let showCycleMarkers = false;
         let frozenTime = 0;
 
+        // Piano keyboard state
+        const pianoSvg = document.getElementById('piano');
+        const chordNameDiv = document.getElementById('chordName');
+        const chordDetailsDiv = document.getElementById('chordDetails');
+        const chordNotesDiv = document.getElementById('chordNotes');
+        const chordIntervalsDiv = document.getElementById('chordIntervals');
+        const keyboardRangeDiv = document.getElementById('keyboardRange');
+
+        // Auto-ranging keyboard settings
+        let displayStartOctave = 3;
+        let displayEndOctave = 5;
+        const minOctaves = 3; // Always show at least 3 octaves
+        let rangeExpandTimeout = null;
+
+        // Note colors for spectrum theme
+        const noteColors = {
+            'C': '#E74C3C', 'D': '#E67E22', 'E': '#F1C40F', 'F': '#27AE60',
+            'G': '#3498DB', 'A': '#8E44AD', 'B': '#9B59B6',
+            'Db': '#E55A30', 'Eb': '#F4A420', 'Gb': '#2D9A8C', 'Ab': '#6B6EC0', 'Bb': '#954FA1',
+            'C#': '#E55A30', 'D#': '#F4A420', 'F#': '#2D9A8C', 'G#': '#6B6EC0', 'A#': '#954FA1'
+        };
+
+        // White and black key patterns
+        const whiteKeyNames = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+        const blackKeyPattern = [1, 1, 0, 1, 1, 1, 0]; // 1 = black key after this white key
+
+        // Generate piano keyboard SVG
+        function generatePiano() {
+            pianoSvg.innerHTML = '';
+
+            const numOctaves = displayEndOctave - displayStartOctave + 1;
+            const numWhiteKeys = numOctaves * 7;
+            const keyWidth = 840 / numWhiteKeys;
+            const keyHeight = 140;
+            const blackKeyWidth = keyWidth * 0.6;
+            const blackKeyHeight = keyHeight * 0.6;
+
+            // Draw white keys first
+            let whiteKeyIndex = 0;
+            for (let octave = displayStartOctave; octave <= displayEndOctave; octave++) {
+                whiteKeyNames.forEach((noteName, i) => {
+                    const x = whiteKeyIndex * keyWidth;
+                    const midiNote = (octave + 1) * 12 + [0, 2, 4, 5, 7, 9, 11][i];
+
+                    const key = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    key.setAttribute('x', x);
+                    key.setAttribute('y', 0);
+                    key.setAttribute('width', keyWidth);
+                    key.setAttribute('height', keyHeight);
+                    key.setAttribute('class', `piano-key white-key note-${noteName}`);
+                    key.setAttribute('data-midi', midiNote);
+                    key.setAttribute('data-note', noteName);
+                    key.setAttribute('rx', 2);
+                    pianoSvg.appendChild(key);
+
+                    // Add label
+                    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    label.setAttribute('x', x + keyWidth / 2);
+                    label.setAttribute('y', keyHeight - 8);
+                    label.setAttribute('text-anchor', 'middle');
+                    label.setAttribute('class', 'key-label');
+                    label.setAttribute('data-midi', midiNote);
+                    label.textContent = `${noteName}${octave}`;
+                    pianoSvg.appendChild(label);
+
+                    whiteKeyIndex++;
+                });
+            }
+
+            // Draw black keys on top
+            whiteKeyIndex = 0;
+            for (let octave = displayStartOctave; octave <= displayEndOctave; octave++) {
+                whiteKeyNames.forEach((noteName, i) => {
+                    if (blackKeyPattern[i] && !(octave === displayEndOctave && i === 6)) {
+                        const x = (whiteKeyIndex + 1) * keyWidth - blackKeyWidth / 2;
+                        const blackNoteName = useFlats ?
+                            ['Db', 'Eb', null, 'Gb', 'Ab', 'Bb', null][i] :
+                            ['C#', 'D#', null, 'F#', 'G#', 'A#', null][i];
+                        const midiNote = (octave + 1) * 12 + [1, 3, null, 6, 8, 10, null][i];
+
+                        if (blackNoteName && midiNote) {
+                            const key = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                            key.setAttribute('x', x);
+                            key.setAttribute('y', 0);
+                            key.setAttribute('width', blackKeyWidth);
+                            key.setAttribute('height', blackKeyHeight);
+                            key.setAttribute('class', `piano-key black-key note-${blackNoteName.replace('#', 's')}`);
+                            key.setAttribute('data-midi', midiNote);
+                            key.setAttribute('data-note', blackNoteName);
+                            key.setAttribute('rx', 2);
+                            pianoSvg.appendChild(key);
+
+                            // Add label for black key
+                            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                            label.setAttribute('x', x + blackKeyWidth / 2);
+                            label.setAttribute('y', blackKeyHeight - 8);
+                            label.setAttribute('text-anchor', 'middle');
+                            label.setAttribute('class', 'key-label black-key-label');
+                            label.setAttribute('data-midi', midiNote);
+                            label.textContent = blackNoteName;
+                            pianoSvg.appendChild(label);
+                        }
+                    }
+                    whiteKeyIndex++;
+                });
+            }
+
+            keyboardRangeDiv.textContent = `Showing C${displayStartOctave} – B${displayEndOctave}`;
+
+            // Add click handlers to all keys
+            pianoSvg.querySelectorAll('.piano-key').forEach(key => {
+                key.addEventListener('mousedown', handleKeyClick);
+                key.addEventListener('mouseup', handleKeyRelease);
+                key.addEventListener('mouseleave', handleKeyRelease);
+            });
+        }
+
+        // Track mouse-clicked notes separately
+        const mouseHeldNotes = new Set();
+
+        // Handle mouse click on piano key
+        function handleKeyClick(e) {
+            const midiNote = parseInt(e.target.getAttribute('data-midi'));
+            if (isNaN(midiNote) || mouseHeldNotes.has(midiNote)) return;
+
+            mouseHeldNotes.add(midiNote);
+            simulateNoteOn(midiNote, 100); // Default velocity 100
+        }
+
+        // Handle mouse release on piano key
+        function handleKeyRelease(e) {
+            const midiNote = parseInt(e.target.getAttribute('data-midi'));
+            if (isNaN(midiNote) || !mouseHeldNotes.has(midiNote)) return;
+
+            mouseHeldNotes.delete(midiNote);
+            simulateNoteOff(midiNote);
+        }
+
+        // Simulate MIDI note on
+        function simulateNoteOn(note, velocity) {
+            const frequency = midiToFrequency(note);
+            activeNotes.set(note, { frequency, velocity });
+
+            updateNoteDisplay();
+            updateKeyboardDisplay();
+            detectChord();
+
+            const noteName = midiToNoteName(note);
+            lastNoteDiv.textContent = noteName;
+            velocityDiv.textContent = velocity;
+            activeNotesDiv.textContent = activeNotes.size;
+        }
+
+        // Simulate MIDI note off
+        function simulateNoteOff(note) {
+            activeNotes.delete(note);
+            activeNotesDiv.textContent = activeNotes.size;
+
+            updateKeyboardDisplay();
+            detectChord();
+
+            if (activeNotes.size === 0) {
+                setTimeout(() => {
+                    if (activeNotes.size === 0) {
+                        updateNoteDisplay();
+                        detectChord();
+                    }
+                }, 1000);
+            } else {
+                updateNoteDisplay();
+            }
+        }
+
+        // Auto-expand keyboard range based on played notes
+        function checkAndExpandRange(midiNote) {
+            const noteOctave = Math.floor(midiNote / 12) - 1;
+            let needsRegen = false;
+
+            // Expand range if note is outside current display
+            if (noteOctave < displayStartOctave) {
+                displayStartOctave = Math.max(0, noteOctave);
+                needsRegen = true;
+            }
+            if (noteOctave > displayEndOctave) {
+                displayEndOctave = Math.min(8, noteOctave);
+                needsRegen = true;
+            }
+
+            // Ensure minimum octave span
+            while (displayEndOctave - displayStartOctave + 1 < minOctaves) {
+                if (displayEndOctave < 8) displayEndOctave++;
+                else if (displayStartOctave > 0) displayStartOctave--;
+                else break;
+                needsRegen = true;
+            }
+
+            if (needsRegen) {
+                generatePiano();
+                updateKeyboardDisplay();
+            }
+        }
+
+        // Update keyboard visual state
+        function updateKeyboardDisplay() {
+            // First, add 'releasing' class to currently active keys that are no longer held
+            document.querySelectorAll('.piano-key.active').forEach(key => {
+                const midi = parseInt(key.getAttribute('data-midi'));
+                if (!activeNotes.has(midi)) {
+                    key.classList.add('releasing');
+                    key.classList.remove('active');
+                    // Remove releasing class after transition
+                    setTimeout(() => key.classList.remove('releasing'), 400);
+                }
+            });
+
+            document.querySelectorAll('.key-label.active').forEach(label => {
+                const midi = parseInt(label.getAttribute('data-midi'));
+                if (!activeNotes.has(midi)) {
+                    label.classList.remove('active');
+                }
+            });
+
+            // Activate currently held keys
+            activeNotes.forEach((noteData, midiNote) => {
+                const key = pianoSvg.querySelector(`.piano-key[data-midi="${midiNote}"]`);
+                const label = pianoSvg.querySelector(`.key-label[data-midi="${midiNote}"]`);
+                if (key) {
+                    key.classList.remove('releasing');
+                    key.classList.add('active');
+                }
+                if (label) {
+                    label.classList.add('active');
+                }
+            });
+        }
+
+        // Detect chord from active notes using Tonal.js
+        // ROCK SOLID music theory: tries multiple enharmonic spellings and inversions
+        function detectChord() {
+            if (activeNotes.size === 0) {
+                chordNameDiv.textContent = 'Play some notes...';
+                chordNameDiv.classList.add('detecting');
+                chordDetailsDiv.classList.add('hidden');
+                return;
+            }
+
+            // Get sorted MIDI notes
+            const sortedMidi = Array.from(activeNotes.keys()).sort((a, b) => a - b);
+
+            if (activeNotes.size === 1) {
+                const noteName = midiToNoteName(sortedMidi[0]);
+                chordNameDiv.textContent = noteName;
+                chordNameDiv.classList.remove('detecting');
+                chordDetailsDiv.classList.add('hidden');
+                return;
+            }
+
+            // Get note names based on user preference
+            const noteNames = sortedMidi.map(midi => {
+                const noteIndex = midi % 12;
+                return useFlats ? noteNamesFlats[noteIndex] : noteNamesSharps[noteIndex];
+            });
+
+            // ROBUST CHORD DETECTION
+            // Try multiple strategies to find the chord
+            let allDetected = [];
+            const bassNote = noteNames[0]; // Lowest note is likely the root
+
+            // Strategy 1: Try all enharmonic spellings and collect ALL detections
+            const spellings = getAllEnharmonicSpellings(noteNames);
+            for (const spelling of spellings) {
+                const detected = Tonal.Chord.detect(spelling);
+                allDetected.push(...detected);
+            }
+
+            // Strategy 2: Try with bass note first (root position bias)
+            for (const spelling of spellings) {
+                // Put bass note first and try detection
+                const bassFirst = [spelling[0], ...spelling.slice(1).sort()];
+                const detected = Tonal.Chord.detect(bassFirst);
+                allDetected.push(...detected);
+            }
+
+            // Strategy 3: Try inversions with each spelling
+            if (noteNames.length >= 3) {
+                for (const spelling of spellings) {
+                    for (let i = 1; i < spelling.length; i++) {
+                        const rotated = [...spelling.slice(i), ...spelling.slice(0, i)];
+                        const detected = Tonal.Chord.detect(rotated);
+                        allDetected.push(...detected);
+                    }
+                }
+            }
+
+            // Strategy 4: Remove duplicate pitch classes and try again
+            const uniqueNotes = [...new Set(noteNames.map(n => normalizeNote(n, useFlats)))];
+            if (uniqueNotes.length !== noteNames.length && uniqueNotes.length >= 2) {
+                for (const preferFlats of [true, false]) {
+                    const normalized = uniqueNotes.map(n => normalizeNote(n, preferFlats));
+                    const detected = Tonal.Chord.detect(normalized);
+                    allDetected.push(...detected);
+                }
+            }
+
+            // Remove duplicates
+            allDetected = [...new Set(allDetected)];
+
+            // Display notes in user's preferred notation
+            const displayNotes = noteNames.map(n => normalizeNote(n, useFlats));
+            const displayBassNote = normalizeNote(bassNote, useFlats);
+
+            if (allDetected.length > 0) {
+                // Get the BEST chord match using scoring
+                const chordSymbol = getBestChord(allDetected, displayBassNote);
+                const chord = Tonal.Chord.get(chordSymbol);
+
+                // Convert chord symbol to user's preferred notation
+                let displaySymbol = chordSymbol;
+                if (useFlats) {
+                    displaySymbol = chordSymbol.replace(/([A-G])#/g, (match, note) => {
+                        return sharpToFlat[note + '#'] || match;
+                    });
+                } else {
+                    displaySymbol = chordSymbol.replace(/([A-G])b/g, (match, note) => {
+                        return flatToSharp[note + 'b'] || match;
+                    });
+                }
+
+                // Detect inversion - if bass note differs from chord root
+                const chordRoot = chord.tonic ? normalizeNote(chord.tonic, useFlats) : null;
+                if (chordRoot && chordRoot !== displayBassNote) {
+                    // It's an inversion! Show as "Chord/Bass"
+                    displaySymbol = `${displaySymbol}/${displayBassNote}`;
+                }
+
+                chordNameDiv.textContent = displaySymbol;
+                chordNameDiv.classList.remove('detecting');
+                chordDetailsDiv.classList.remove('hidden');
+
+                // Create note badges with colors
+                const badgesHTML = displayNotes.map(note => {
+                    const color = noteColors[note] || noteColors[normalizeNote(note, true)] || '#888';
+                    return `<span class="note-badge" style="background: ${color}">${note}</span>`;
+                }).join('');
+                chordNotesDiv.innerHTML = badgesHTML;
+
+                // Show intervals
+                if (chord.intervals && chord.intervals.length > 0) {
+                    chordIntervalsDiv.textContent = chord.intervals.join(' · ');
+                } else {
+                    chordIntervalsDiv.textContent = '—';
+                }
+            } else {
+                // No chord detected - show notes as combination
+                chordNameDiv.textContent = displayNotes.join(' + ');
+                chordNameDiv.classList.add('detecting');
+
+                // Still show the notes
+                chordDetailsDiv.classList.remove('hidden');
+                const badgesHTML = displayNotes.map(note => {
+                    const color = noteColors[note] || noteColors[normalizeNote(note, true)] || '#888';
+                    return `<span class="note-badge" style="background: ${color}">${note}</span>`;
+                }).join('');
+                chordNotesDiv.innerHTML = badgesHTML;
+                chordIntervalsDiv.textContent = 'exploring...';
+            }
+        }
+
+        // ===== HUD CONTROLS =====
+
+        // HUD Toggle Elements
+        const toggleDarkMode = document.getElementById('toggleDarkMode');
+        const toggleWaveform = document.getElementById('toggleWaveform');
+        const toggleNoteDisplay = document.getElementById('toggleNoteDisplay');
+        const toggleMidiInfo = document.getElementById('toggleMidiInfo');
+
+        // HUD Sections
+        const waveformSection = document.getElementById('waveformSection');
+        const noteDisplaySection = document.getElementById('noteDisplaySection');
+        const midiInfoSection = document.getElementById('midiInfoSection');
+
+        // Load HUD preferences from localStorage
+        const hudPrefs = JSON.parse(localStorage.getItem('hud-preferences') || '{}');
+
+        // Apply saved dark mode preference (default: off)
+        if (hudPrefs.darkMode) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            toggleDarkMode.classList.add('active');
+        } else {
+            toggleDarkMode.classList.remove('active');
+        }
+
+        // Apply saved section visibility (default: all visible)
+        if (hudPrefs.waveform === false) {
+            waveformSection.classList.add('collapsed');
+            toggleWaveform.classList.remove('active');
+        }
+        if (hudPrefs.noteDisplay === false) {
+            noteDisplaySection.classList.add('collapsed');
+            toggleNoteDisplay.classList.remove('active');
+        }
+        if (hudPrefs.midiInfo === false) {
+            midiInfoSection.classList.add('collapsed');
+            toggleMidiInfo.classList.remove('active');
+        }
+
+        // Save HUD preferences
+        function saveHudPrefs() {
+            const prefs = {
+                darkMode: document.documentElement.getAttribute('data-theme') === 'dark',
+                waveform: !waveformSection.classList.contains('collapsed'),
+                noteDisplay: !noteDisplaySection.classList.contains('collapsed'),
+                midiInfo: !midiInfoSection.classList.contains('collapsed')
+            };
+            localStorage.setItem('hud-preferences', JSON.stringify(prefs));
+        }
+
+        // Dark Mode Toggle
+        toggleDarkMode.addEventListener('click', () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                document.documentElement.removeAttribute('data-theme');
+                toggleDarkMode.classList.remove('active');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                toggleDarkMode.classList.add('active');
+            }
+            saveHudPrefs();
+        });
+
+        // Waveform Toggle
+        toggleWaveform.addEventListener('click', () => {
+            waveformSection.classList.toggle('collapsed');
+            toggleWaveform.classList.toggle('active');
+            saveHudPrefs();
+        });
+
+        // Note Display Toggle
+        toggleNoteDisplay.addEventListener('click', () => {
+            noteDisplaySection.classList.toggle('collapsed');
+            toggleNoteDisplay.classList.toggle('active');
+            saveHudPrefs();
+        });
+
+        // MIDI Info Toggle
+        toggleMidiInfo.addEventListener('click', () => {
+            midiInfoSection.classList.toggle('collapsed');
+            toggleMidiInfo.classList.toggle('active');
+            saveHudPrefs();
+        });
+
+        // ===== END HUD CONTROLS =====
+
+        // Load notation preference from localStorage BEFORE generating piano
+        const savedNotation = localStorage.getItem('notation-preference');
+        if (savedNotation) {
+            useFlats = savedNotation === 'flats';
+        }
+
         const notePreferenceSelect = document.getElementById('notePreference');
+        notePreferenceSelect.value = useFlats ? 'flats' : 'sharps';
+
+        // Initialize piano keyboard with correct notation
+        generatePiano();
+
         notePreferenceSelect.addEventListener('change', (e) => {
             useFlats = e.target.value === 'flats';
+            localStorage.setItem('notation-preference', e.target.value);
+            generatePiano(); // Regenerate keyboard with new notation
+            updateKeyboardDisplay();
+            detectChord();
         });
 
         freezeButton.addEventListener('click', () => {
@@ -384,9 +1325,100 @@
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
-        // Note names
+        // Note names - comprehensive enharmonic mappings
         const noteNamesSharps = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
         const noteNamesFlats = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+
+        // Enharmonic equivalents for normalization
+        const sharpToFlat = {
+            'C#': 'Db', 'D#': 'Eb', 'F#': 'Gb', 'G#': 'Ab', 'A#': 'Bb',
+            'E#': 'F', 'B#': 'C', 'Fb': 'E', 'Cb': 'B'
+        };
+        const flatToSharp = {
+            'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#',
+            'Fb': 'E', 'Cb': 'B', 'E#': 'F', 'B#': 'C'
+        };
+
+        // Normalize a note to preferred spelling (flats or sharps)
+        function normalizeNote(note, preferFlats = true) {
+            const baseNote = note.replace(/[0-9]/g, '');
+            if (preferFlats && flatToSharp[baseNote]) {
+                return baseNote; // Already a flat
+            }
+            if (preferFlats && sharpToFlat[baseNote]) {
+                return sharpToFlat[baseNote]; // Convert sharp to flat
+            }
+            if (!preferFlats && sharpToFlat[baseNote]) {
+                return baseNote; // Already a sharp
+            }
+            if (!preferFlats && flatToSharp[baseNote]) {
+                return flatToSharp[baseNote]; // Convert flat to sharp
+            }
+            return baseNote; // Natural note
+        }
+
+        // Get all enharmonic spellings of a note set for chord detection
+        function getAllEnharmonicSpellings(notes) {
+            const spellings = [];
+
+            // All flats
+            spellings.push(notes.map(n => normalizeNote(n, true)));
+
+            // All sharps
+            spellings.push(notes.map(n => normalizeNote(n, false)));
+
+            // Original
+            spellings.push([...notes]);
+
+            return spellings;
+        }
+
+        // Score a chord name - simpler/more common chords score higher
+        function scoreChordName(chordName) {
+            if (!chordName) return 0;
+
+            let score = 100;
+
+            // HEAVILY prefer basic triads - these are the most common chords
+            if (/^[A-G][b#]?$/.test(chordName)) score += 200; // Major triad (just "C", "Eb")
+            else if (/^[A-G][b#]?m$/.test(chordName)) score += 190; // Minor triad
+            else if (/^[A-G][b#]?dim$/.test(chordName)) score += 150; // Diminished
+            else if (/^[A-G][b#]?aug$/.test(chordName)) score += 140; // Augmented
+            else if (/^[A-G][b#]?maj7$/.test(chordName)) score += 130;
+            else if (/^[A-G][b#]?7$/.test(chordName)) score += 130;
+            else if (/^[A-G][b#]?m7$/.test(chordName)) score += 130;
+            else if (/^[A-G][b#]?sus[24]$/.test(chordName)) score += 120;
+
+            // HEAVILY penalize altered/exotic chords - these are rarely what users mean
+            if (chordName.includes('#5')) score -= 150; // Augmented 5th variants
+            if (chordName.includes('b5')) score -= 100;
+            if (chordName.includes('#9')) score -= 80;
+            if (chordName.includes('b9')) score -= 80;
+            if (chordName.includes('#11')) score -= 80;
+            if (chordName.includes('b13')) score -= 80;
+            if (chordName.includes('add')) score -= 40;
+
+            // Penalize long/complex chord names
+            if (chordName.length > 4) score -= (chordName.length - 4) * 10;
+
+            return score;
+        }
+
+        // Find the best chord from a list of detections
+        function getBestChord(detections, bassNote) {
+            if (!detections || detections.length === 0) return null;
+
+            // Score each detection - NO bass bonus, just prefer simple chords
+            const scored = detections.map(name => ({
+                name,
+                score: scoreChordName(name)
+            }));
+
+            // Sort by score (descending)
+            scored.sort((a, b) => b.score - a.score);
+
+            return scored[0]?.name || detections[0];
+        }
 
         function midiToNoteName(midiNumber) {
             const octave = Math.floor(midiNumber / 12) - 1;
@@ -444,11 +1476,14 @@
 
             noteDisplay.innerHTML = notesHTML;
 
-            // Show info for all notes
-            const highestNote = sortedNotes[sortedNotes.length - 1];
-            const frequency = midiToFrequency(highestNote);
-            frequencyDisplay.textContent = activeNotes.size === 1 ? `Fundamental Frequency` : `${activeNotes.size} notes (highest: ${frequency} Hz)`;
-            midiDisplay.textContent = activeNotes.size === 1 ? `MIDI ${highestNote}` : `MIDI ${sortedNotes.join(', ')}`;
+            // Show ALL frequencies
+            const allFrequencies = sortedNotes.map(note => midiToFrequency(note));
+            if (activeNotes.size === 1) {
+                frequencyDisplay.textContent = `${allFrequencies[0]} Hz`;
+            } else {
+                frequencyDisplay.textContent = allFrequencies.map(f => `${f} Hz`).join(' · ');
+            }
+            midiDisplay.textContent = activeNotes.size === 1 ? `MIDI ${sortedNotes[0]}` : `MIDI ${sortedNotes.join(', ')}`;
         }
 
         // Draw animated sine wave
@@ -470,10 +1505,10 @@
             ctx.stroke();
             ctx.setLineDash([]);
 
-            // Get all active frequencies
-            const frequencies = Array.from(activeNotes.values());
+            // Get all active note data (frequency + velocity)
+            const noteDataArray = Array.from(activeNotes.values());
 
-            if (frequencies.length === 0) {
+            if (noteDataArray.length === 0) {
                 waveInfo.textContent = '';
                 // Continue animation even when no note
                 requestAnimationFrame(drawWave);
@@ -483,16 +1518,18 @@
             // Animate the wave (or freeze it)
             const time = animationFrozen ? frozenTime : Date.now() * 0.001;
 
-            // Calculate wavelength to show 2.5 complete cycles
-            const cyclesShown = 2.5;
+            // Get zoom level from slider (fewer cycles = more zoomed in)
+            const zoomSlider = document.getElementById('waveZoom');
+            const cyclesShown = zoomSlider ? parseFloat(zoomSlider.value) : 1.5;
             const pixelsPerCycle = width / cyclesShown;
 
             // Update info display
-            let infoText = `Canvas width: ${Math.round(width)}px | Showing ${cyclesShown} cycles | `;
-            if (frequencies.length === 1) {
-                infoText += `Wavelength: ${Math.round(pixelsPerCycle)}px (${Math.round(width / pixelsPerCycle * 10) / 10} cycles visible)`;
+            let infoText = `${cyclesShown} cycles`;
+            if (noteDataArray.length === 1) {
+                const vel = noteDataArray[0].velocity;
+                infoText += ` · vel ${Math.round(vel/127*100)}%`;
             } else {
-                infoText += `${frequencies.length} frequencies displayed`;
+                infoText += ` · ${noteDataArray.length} notes`;
             }
             waveInfo.textContent = infoText;
 
@@ -519,22 +1556,38 @@
                 }
             }
 
-            // Draw each active frequency
-            frequencies.forEach((freq, index) => {
-                const amplitude = height * 0.3 / frequencies.length; // Reduce amplitude if multiple notes
+            // Draw each active frequency - velocity affects amplitude & opacity
+            noteDataArray.forEach((noteData, index) => {
+                const freq = noteData.frequency;
+                const velocity = noteData.velocity;
+
+                // Velocity affects amplitude: soft = small waves, hard = big waves
+                const velocityScale = 0.3 + (velocity / 127) * 0.7; // Range: 0.3 to 1.0
+                const baseAmplitude = height * 0.35 / noteDataArray.length;
+                const amplitude = baseAmplitude * velocityScale;
+
+                // Velocity affects line width: soft = thin, hard = thick
+                const lineWidth = 1 + (velocity / 127) * 2.5; // Range: 1 to 3.5
+
+                // Velocity affects opacity: soft = transparent, hard = solid
+                const opacity = 0.4 + (velocity / 127) * 0.6; // Range: 0.4 to 1.0
+
                 const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6'];
-                ctx.strokeStyle = colors[index % colors.length];
-                ctx.lineWidth = 2;
+                const baseColor = colors[index % colors.length];
+
+                // Apply opacity to color
+                ctx.strokeStyle = baseColor;
+                ctx.globalAlpha = opacity;
+                ctx.lineWidth = lineWidth;
                 ctx.beginPath();
 
                 for (let x = 0; x <= width; x += 1) {
                     // Properly calculate phase based on actual frequency
-                    // Each cycle is 2π, and we want cyclesShown cycles across the width
                     const cycles = (x / width) * cyclesShown;
                     const phase = cycles * Math.PI * 2;
-                    const animatedPhase = phase - (time * freq / 100); // Animate based on frequency
+                    const animatedPhase = phase - (time * freq / 100);
 
-                    const offsetY = centerY + (index - (frequencies.length - 1) / 2) * amplitude * 0.5;
+                    const offsetY = centerY + (index - (noteDataArray.length - 1) / 2) * amplitude * 0.5;
                     const y = offsetY + Math.sin(animatedPhase) * amplitude;
 
                     if (x === 0) {
@@ -544,6 +1597,7 @@
                     }
                 }
                 ctx.stroke();
+                ctx.globalAlpha = 1.0; // Reset opacity
             });
 
             // Continue animation
@@ -564,11 +1618,17 @@
                 const noteName = midiToNoteName(note);
                 const frequency = midiToFrequency(note);
 
-                // Store note with its frequency
-                activeNotes.set(note, frequency);
+                // Store note with frequency AND velocity
+                activeNotes.set(note, { frequency, velocity });
 
-                // Update display
+                // Check if we need to expand keyboard range
+                checkAndExpandRange(note);
+
+                // Update displays
                 updateNoteDisplay();
+                updateKeyboardDisplay();
+                detectChord();
+
                 noteDisplay.classList.add('active');
                 lastNoteDiv.textContent = noteName;
                 velocityDiv.textContent = velocity;
@@ -583,10 +1643,15 @@
                 activeNotes.delete(note);
                 activeNotesDiv.textContent = activeNotes.size;
 
+                // Update keyboard and chord detection
+                updateKeyboardDisplay();
+                detectChord();
+
                 if (activeNotes.size === 0) {
                     setTimeout(() => {
                         if (activeNotes.size === 0) {
                             updateNoteDisplay();
+                            detectChord();
                         }
                     }, 1000);
                 } else {

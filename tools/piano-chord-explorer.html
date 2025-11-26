@@ -545,21 +545,26 @@
                     <select id="chord-type">
                         <option value="major">Major</option>
                         <option value="minor">Minor</option>
+                        <option value="6">Major 6th</option>
+                        <option value="m6">Minor 6th</option>
                         <option value="7">Dominant 7th</option>
                         <option value="maj7">Major 7th</option>
                         <option value="m7">Minor 7th</option>
-                        <option value="dim">Diminished</option>
-                        <option value="aug">Augmented</option>
+                        <option value="dim7">Diminished 7th</option>
+                        <option value="m7b5">Half-Diminished 7th</option>
+                        <option value="aug7">Augmented 7th</option>
+                        <option value="9">Dominant 9th</option>
+                        <option value="maj9">Major 9th</option>
+                        <option value="m9">Minor 9th</option>
+                        <option value="11">Dominant 11th</option>
+                        <option value="13">Dominant 13th</option>
                         <option value="sus2">Suspended 2nd</option>
                         <option value="sus4">Suspended 4th</option>
+                        <option value="7sus4">7 Suspended 4th</option>
+                        <option value="dim">Diminished</option>
+                        <option value="aug">Augmented</option>
                     </select>
                 </div>
-            </div>
-
-            <div style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-bottom: 16px;">
-                <button id="pan-left" class="toggle-btn" style="border-radius: 4px;">◀ Left</button>
-                <span id="octave-range" style="font-size: 0.9rem; color: var(--secondary); min-width: 100px; text-align: center;">C4 - B5</span>
-                <button id="pan-right" class="toggle-btn" style="border-radius: 4px;">Right ▶</button>
             </div>
 
             <svg class="piano-keyboard" id="piano" viewBox="0 0 840 200" preserveAspectRatio="xMidYMid meet">
@@ -611,7 +616,6 @@
                 <li>Active chord notes are circled on the keyboard</li>
                 <li>Patterns show chord structure: root is solid, thirds have diagonal lines (///), fifths have dots (••), sevenths have horizontal lines (===)</li>
                 <li>Hover over keys to see individual note names</li>
-                <li>Use arrow buttons to pan through different octaves</li>
             </ul>
         </section>
 
@@ -673,12 +677,6 @@
 
         let currentChord = null;
 
-        // Keyboard range - start with C4-B5 (2 octaves), allow panning from C2 to C7
-        let startOctave = 4;
-        let endOctave = 5;
-        const minOctave = 2;
-        const maxOctave = 7;
-
         // Convert note name based on notation preference
         function getNoteName(note) {
             if (useFlats) {
@@ -698,8 +696,8 @@
 
             let whiteKeyIndex = 0;
 
-            // Generate octaves based on current range
-            for (let octave = startOctave; octave <= endOctave; octave++) {
+            // Generate 2 octaves (C4 to B5)
+            for (let octave = 4; octave <= 5; octave++) {
                 // Draw white keys
                 whiteKeys.forEach((note, i) => {
                     const x = whiteKeyIndex * whiteKeyWidth;
@@ -737,7 +735,7 @@
 
             // Draw black keys on top
             whiteKeyIndex = 0;
-            for (let octave = startOctave; octave <= endOctave; octave++) {
+            for (let octave = 4; octave <= 5; octave++) {
                 whiteKeys.forEach((note, i) => {
                     Object.entries(blackKeyPositions).forEach(([blackNote, position]) => {
                         if (position === i + 1) {
@@ -776,58 +774,6 @@
                     });
                     whiteKeyIndex++;
                 });
-            }
-        }
-
-        // Update octave range display and button states
-        function updateOctaveDisplay() {
-            const rangeDisplay = document.getElementById('octave-range');
-            const panLeftBtn = document.getElementById('pan-left');
-            const panRightBtn = document.getElementById('pan-right');
-
-            rangeDisplay.textContent = `C${startOctave} - B${endOctave}`;
-
-            // Disable buttons at min/max range
-            panLeftBtn.disabled = startOctave <= minOctave;
-            panRightBtn.disabled = endOctave >= maxOctave;
-
-            // Update button styling for disabled state
-            if (panLeftBtn.disabled) {
-                panLeftBtn.style.opacity = '0.4';
-                panLeftBtn.style.cursor = 'not-allowed';
-            } else {
-                panLeftBtn.style.opacity = '1';
-                panLeftBtn.style.cursor = 'pointer';
-            }
-
-            if (panRightBtn.disabled) {
-                panRightBtn.style.opacity = '0.4';
-                panRightBtn.style.cursor = 'not-allowed';
-            } else {
-                panRightBtn.style.opacity = '1';
-                panRightBtn.style.cursor = 'pointer';
-            }
-        }
-
-        // Pan keyboard left (lower octaves)
-        function panLeft() {
-            if (startOctave > minOctave) {
-                startOctave--;
-                endOctave--;
-                generatePiano();
-                updateOctaveDisplay();
-                updateChord(); // Refresh chord display
-            }
-        }
-
-        // Pan keyboard right (higher octaves)
-        function panRight() {
-            if (endOctave < maxOctave) {
-                startOctave++;
-                endOctave++;
-                generatePiano();
-                updateOctaveDisplay();
-                updateChord(); // Refresh chord display
             }
         }
 
@@ -954,8 +900,8 @@
                             patternId = 'pattern-other';
                         }
 
-                        // Add pattern overlay (not for root - root is solid)
-                        if (patternId) {
+                        // Add pattern overlay (not for root - root is solid, not for black keys - color only)
+                        if (patternId && !isBlackKey) {
                             const overlay = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
                             overlay.setAttribute('x', rect.x);
                             overlay.setAttribute('y', rect.y);
@@ -964,9 +910,6 @@
                             overlay.setAttribute('fill', `url(#${patternId})`);
                             overlay.setAttribute('class', 'pattern-overlay');
                             overlay.setAttribute('pointer-events', 'none');
-                            if (isBlackKey) {
-                                overlay.setAttribute('rx', 2);
-                            }
                             svg.appendChild(overlay);
                         }
                     });
@@ -1002,9 +945,10 @@
                 // Update chord info with colored badges
                 document.getElementById('chord-name').textContent = `${currentChord.symbol} - ${currentChord.name}`;
 
-                // Get computed theme colors
-                const computedStyle = getComputedStyle(document.querySelector('.piano-container'));
-                const currentTheme = document.querySelector('.piano-container').getAttribute('data-theme') || 'muted';
+                // Get computed theme colors from the themed container
+                const pianoContainer = document.querySelector('.piano-container');
+                const computedStyle = getComputedStyle(pianoContainer);
+                const currentTheme = pianoContainer.getAttribute('data-theme') || 'spectrum';
                 const isSpectrumTheme = currentTheme.includes('spectrum');
 
                 const notesHtml = currentChord.notes.map((note, index) => {
@@ -1015,14 +959,15 @@
                     if (isSpectrumTheme) {
                         // Spectrum theme: color by note
                         const noteClass = Note.pitchClass(note);
-                        let colorVar = `--note-${noteClass}-dark`;
 
-                        // Fallback to non-dark version if dark doesn't exist
-                        if (!computedStyle.getPropertyValue(colorVar).trim()) {
-                            colorVar = `--note-${noteClass}`;
+                        // Find an actual key with this note to get its computed color
+                        const matchingKey = document.querySelector(`.piano-key.note-${noteClass}`);
+                        if (matchingKey) {
+                            const keyStyle = getComputedStyle(matchingKey);
+                            bgColor = keyStyle.fill || '#555';
+                        } else {
+                            bgColor = '#555';
                         }
-
-                        bgColor = computedStyle.getPropertyValue(colorVar) || 'var(--accent)';
                     } else {
                         // Muted theme: color by interval
                         let colorVar = '--theme-root-dark';
@@ -1131,17 +1076,12 @@
 
         // Initialize
         generatePiano();
-        updateOctaveDisplay();
         updateLegend();
         updateChord();
 
         // Event listeners
         document.getElementById('root-note').addEventListener('change', updateChord);
         document.getElementById('chord-type').addEventListener('change', updateChord);
-
-        // Pan button listeners
-        document.getElementById('pan-left').addEventListener('click', panLeft);
-        document.getElementById('pan-right').addEventListener('click', panRight);
 
         // Sharp/Flat toggle listeners (only for notation buttons)
         document.querySelectorAll('.notation-toggle .toggle-btn').forEach(btn => {
